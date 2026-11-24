@@ -1,0 +1,10 @@
+# Application installers belong in GitHub Releases.
+*.exe
+*.zip
+*.deb
+*.msi
+*.partial
+
+# Local files
+.DS_Store
+Thumbs.db
