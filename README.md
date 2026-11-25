@@ -7,7 +7,7 @@ Send and receive slow-scan television pictures over amateur radio with Tux-sstv,
 | Platform | Version | Download |
 | --- | --- | --- |
 | Windows 10 (1809+) / Windows 11, 64-bit | 1.15.3 | [Download Windows installer](https://github.com/ericrichards420-art/Tux-sstv/releases/download/v1.15.3/Tux-sstv-1.15.3-windows-x64-setup.exe) |
-| Ubuntu 26.04, 64-bit Intel/AMD | 1.14.3 | Linux package upload pending |
+| Ubuntu 26.04, 64-bit Intel/AMD | 1.14.3 | [Download Linux .deb](https://github.com/ericrichards420-art/Tux-sstv/releases/download/linux-v1.14.3/tux-sstv_1.14.3-1.ubuntu26.04_amd64.deb) |
 
 ### Windows installation
 
@@ -24,7 +24,7 @@ The Linux `.deb` is built for **Ubuntu 26.04 on 64-bit Intel/AMD PCs (amd64)**. 
 After downloading the package, open a terminal in its download folder and run:
 
 ```bash
-sudo apt install ./tux-sstv_1.14.3-1~ubuntu26.04_amd64.deb
+sudo apt install ./tux-sstv_1.14.3-1.ubuntu26.04_amd64.deb
 ```
 
 APT installs the required dependencies. Open **Tux-sstv** from the application menu, or run `tux-sstv`, then use the **Setup wizard** to choose audio, CAT, and remote settings.
