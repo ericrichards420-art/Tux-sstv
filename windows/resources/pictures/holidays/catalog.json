@@ -1,0 +1,117 @@
+[
+  {
+    "id": "new-year-radio",
+    "title": "New Year's Day",
+    "file": "new-year-radio.png",
+    "width": 1402,
+    "height": 1122,
+    "sha256": "b8bbdfe6c0f1c7136a30adb7c63f6e8282b328f2c66e3c12004cac2825dbc2ce",
+    "federalHoliday": "New Year's Day"
+  },
+  {
+    "id": "martin-luther-king-jr-radio",
+    "title": "Martin Luther King Jr. Day",
+    "federalHoliday": "Birthday of Martin Luther King, Jr.",
+    "file": "martin-luther-king-jr-radio.png",
+    "width": 1402,
+    "height": 1122,
+    "sha256": "9d7310c00551757d37f3da62942b983d8f66627953c10048d126980e5b990050"
+  },
+  {
+    "id": "washington-birthday-radio",
+    "title": "Washington's Birthday",
+    "federalHoliday": "Washington's Birthday",
+    "file": "washington-birthday-radio.png",
+    "width": 1402,
+    "height": 1122,
+    "sha256": "81e47a101c8217542b34d1af438950b5504a7bf945cac7ba4439bf0815f7c080"
+  },
+  {
+    "id": "memorial-day-radio",
+    "title": "Memorial Day",
+    "federalHoliday": "Memorial Day",
+    "file": "memorial-day-radio.png",
+    "width": 1402,
+    "height": 1122,
+    "sha256": "f488f79e6a73cd714f623f43a021584e590aeae7d8d10f7ccd89e946c62af3ac"
+  },
+  {
+    "id": "juneteenth-radio",
+    "title": "Juneteenth",
+    "federalHoliday": "Juneteenth National Independence Day",
+    "file": "juneteenth-radio.png",
+    "width": 1402,
+    "height": 1122,
+    "sha256": "2e67610cb22ee1132b76c25819d6f90e955d4cee4d3bba3d3dfa0d61f8fe8abe"
+  },
+  {
+    "id": "fourth-of-july-radio",
+    "title": "Independence Day",
+    "file": "fourth-of-july-radio.png",
+    "width": 1402,
+    "height": 1122,
+    "sha256": "9bf69564b3438b5ba8d64de79b499087d075467b12a0708d7cd20b1466e04b25",
+    "federalHoliday": "Independence Day"
+  },
+  {
+    "id": "labor-day-radio",
+    "title": "Labor Day",
+    "federalHoliday": "Labor Day",
+    "file": "labor-day-radio.png",
+    "width": 1402,
+    "height": 1122,
+    "sha256": "c7ad1f63aa44685dc66933226d153d73f13dbdae5089cf0e34db7a845f0250ca"
+  },
+  {
+    "id": "columbus-day-radio",
+    "title": "Columbus Day",
+    "federalHoliday": "Columbus Day",
+    "file": "columbus-day-radio.png",
+    "width": 1402,
+    "height": 1122,
+    "sha256": "2ff3bf6bfa02982ce920317f7b57e91949da22f5b67cb2c1fb2a6ae78edf846a"
+  },
+  {
+    "id": "veterans-day-radio",
+    "title": "Veterans Day",
+    "federalHoliday": "Veterans Day",
+    "file": "veterans-day-radio.png",
+    "width": 1402,
+    "height": 1122,
+    "sha256": "262ceba656e146c101999a22b086ff564383a4d2ac5a136a9344ed467c1a38fd"
+  },
+  {
+    "id": "thanksgiving-radio",
+    "title": "Thanksgiving Day",
+    "file": "thanksgiving-radio.png",
+    "width": 1402,
+    "height": 1122,
+    "sha256": "9e67e490b2953d9f671215031de2edc47cfc33f3b1a59e50e8589f2ac1c65ad0",
+    "federalHoliday": "Thanksgiving Day"
+  },
+  {
+    "id": "christmas-radio",
+    "title": "Christmas Day",
+    "file": "christmas-radio.png",
+    "width": 1402,
+    "height": 1122,
+    "sha256": "939a7c002f81aa93c31a211d91112098d7875a084df8f4b4a119bc998aca1e95",
+    "federalHoliday": "Christmas Day"
+  },
+  {
+    "id": "easter-radio",
+    "title": "Easter",
+    "file": "easter-radio.png",
+    "width": 1402,
+    "height": 1122,
+    "sha256": "8bf1d6785d528c97ee2cd85642001eadd112a6534f39035b92fb0e0fb4c8d739"
+  },
+  {
+    "id": "halloween-radio",
+    "title": "Halloween",
+    "file": "halloween-radio.png",
+    "width": 1402,
+    "height": 1122,
+    "sha256": "c1364c85b7a39bd1eef8df55dc97cdcb1ab8939cf3ccb88611fbe340afbb2768"
+  }
+]

@@ -1,0 +1,49 @@
+name: Windows preview build
+on:
+  workflow_dispatch:
+  push:
+    branches: [windows-port]
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Check the automatic bootstrap with Windows PowerShell 5.1
+        shell: powershell
+        run: .\tests\bootstrap_windows_tests.ps1
+      - name: Check installer packaging with Windows PowerShell 5.1
+        shell: powershell
+        run: .\tests\installer_windows_tests.ps1
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            make curl tar gzip
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-pkgconf
+            mingw-w64-ucrt-x86_64-libusb
+            mingw-w64-ucrt-x86_64-qt6-base
+            mingw-w64-ucrt-x86_64-qt6-multimedia
+            mingw-w64-ucrt-x86_64-qt6-svg
+            mingw-w64-ucrt-x86_64-qt6-imageformats
+      - name: Build, test and deploy native Windows program
+        run: bash packaging/build-windows.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Tux-sstv-windows-x64-preview
+          path: |
+            dist/windows/*.zip
+            dist/windows/*-setup.exe
+            dist/windows/*.sha256
+            installer-logs/
+            build-windows-logs/
+          if-no-files-found: error

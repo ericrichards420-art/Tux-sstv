@@ -1,0 +1,5 @@
+#!/bin/sh
+# Compatibility command for installations and scripts using the former name.
+set -eu
+command_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+exec "$command_dir/tux-sstv" "$@"

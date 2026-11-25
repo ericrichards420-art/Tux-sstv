@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Tux-sstv
+GenericName=SSTV Picture Communication
+Comment=Send and receive SSTV pictures over amateur radio
+Exec=tux-sstv
+TryExec=tux-sstv
+Icon=tux-sstv
+Terminal=false
+Categories=Network;HamRadio;
+StartupNotify=true
+StartupWMClass=OpenSSTV
+Keywords=Tux;Linux;SSTV;Radio;Ham;Slow Scan;Images;

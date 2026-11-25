@@ -1,0 +1,30 @@
+#include "contactlog_ui.h"
+#include "imageview.h"
+#include "core/fskid.h"
+#include <QtWidgets>
+#include <QTimeZone>
+
+ContactEditor::ContactEditor(sstv::ContactLog log,sstv::Contact seed,QImage rx,QImage tx,QWidget* parent):QDialog(parent) {
+    setObjectName("contactEditor");setWindowTitle("Log SSTV contact");resize(540,500);auto* layout=new QVBoxLayout(this);auto* form=new QFormLayout;layout->addLayout(form);
+    auto* call=new QLineEdit(seed.call);call->setObjectName("contactCall");call->setMaxLength(12);form->addRow("Callsign",call);
+    auto* utc=new QDateTimeEdit(seed.utc.toUTC());utc->setObjectName("contactUtc");utc->setTimeZone(QTimeZone::utc());utc->setDisplayFormat("yyyy-MM-dd HH:mm:ss 'UTC'");utc->setCalendarPopup(true);form->addRow("Date and time",utc);
+    auto* frequency=new QDoubleSpinBox;frequency->setObjectName("contactFrequency");frequency->setDecimals(6);frequency->setRange(0,1000000);frequency->setSpecialValueText("Unknown");frequency->setSuffix(" MHz");frequency->setValue(seed.frequencyHz/1e6);form->addRow("Frequency",frequency);
+    auto* mode=new QComboBox;mode->setObjectName("contactMode");for(const auto& m:sstv::modes())mode->addItem(m.name,m.id);mode->setCurrentIndex(std::max(0,mode->findData(seed.mode)));form->addRow("SSTV mode",mode);
+    auto* sent=new QLineEdit;sent->setObjectName("contactSentReport");sent->setMaxLength(32);form->addRow("Report sent",sent);auto* received=new QLineEdit;received->setObjectName("contactReceivedReport");received->setMaxLength(32);form->addRow("Report received",received);
+    auto* notes=new QPlainTextEdit;notes->setObjectName("contactNotes");notes->setMaximumHeight(100);form->addRow("Notes",notes);
+    auto* attach=new QCheckBox("Save copies of the current RX and TX pictures with this contact");attach->setObjectName("contactPictures");attach->setChecked(true);attach->setEnabled(!rx.isNull() || !tx.isNull());layout->addWidget(attach);
+    auto* hint=new QLabel("Check the callsign and frequency before saving. Zero frequency means unknown. Reports start blank for each contact.");hint->setWordWrap(true);layout->addWidget(hint);
+    auto* error=new QLabel;error->setObjectName("contactError");error->setWordWrap(true);error->setTextFormat(Qt::PlainText);layout->addWidget(error);layout->addStretch();
+    auto* buttons=new QDialogButtonBox(QDialogButtonBox::Save|QDialogButtonBox::Cancel);layout->addWidget(buttons);connect(buttons,&QDialogButtonBox::rejected,this,&QDialog::reject);
+    connect(buttons,&QDialogButtonBox::accepted,this,[=,this]{auto c=seed;c.call=call->text();c.utc=utc->dateTime().toUTC();c.frequencyHz=frequency->value()*1e6;c.mode=mode->currentData().toString();c.sentReport=sent->text();c.receivedReport=received->text();c.notes=notes->toPlainText();QString message;if(!log.append(c,attach->isChecked()?rx:QImage{},attach->isChecked()?tx:QImage{},message)){error->setText(message);return;}accept();});
+}
+ContactLogDialog::ContactLogDialog(sstv::ContactLog log,QWidget* parent):QDialog(parent) {
+    setObjectName("contactLog");setWindowTitle("Tux-sstv contact log");resize(1000,540);auto* layout=new QVBoxLayout(this);auto* table=new QTableWidget;table->setObjectName("contactTable");table->setColumnCount(8);table->setHorizontalHeaderLabels({"UTC","Callsign","MHz","Mode","Sent","Received","Notes","Pictures"});table->setEditTriggers(QAbstractItemView::NoEditTriggers);table->setSelectionBehavior(QAbstractItemView::SelectRows);table->setSelectionMode(QAbstractItemView::SingleSelection);table->horizontalHeader()->setStretchLastSection(true);layout->addWidget(table);
+    auto* status=new QLabel;status->setWordWrap(true);status->setTextFormat(Qt::PlainText);layout->addWidget(status);
+    auto* row=new QHBoxLayout;auto* refresh=new QPushButton("Refresh");auto* exportCsv=new QPushButton("Export CSV…");auto* showRx=new QPushButton("View RX picture");auto* showTx=new QPushButton("View TX picture");auto* close=new QPushButton("Close");row->addWidget(refresh);row->addWidget(exportCsv);row->addWidget(showRx);row->addWidget(showTx);row->addStretch();row->addWidget(close);layout->addLayout(row);
+    auto reload=[=]{QList<sstv::Contact> contacts;QString error;table->setRowCount(0);if(!log.load(contacts,error)){status->setText(error);return;}for(auto it=contacts.crbegin();it!=contacts.crend();++it){const auto& c=*it;const int r=table->rowCount();table->insertRow(r);QStringList cells{c.utc.toUTC().toString("yyyy-MM-dd HH:mm:ss"),c.call,c.frequencyHz>0?QString::number(c.frequencyHz/1e6,'f',6):"Unknown",c.mode,c.sentReport,c.receivedReport,c.notes,QString(c.rxImage.isEmpty()?"":"RX ")+(c.txImage.isEmpty()?"":"TX")};for(int col=0;col<cells.size();++col)table->setItem(r,col,new QTableWidgetItem(cells[col]));table->item(r,7)->setData(Qt::UserRole,c.rxImage);table->item(r,7)->setData(Qt::UserRole+1,c.txImage);}table->resizeColumnsToContents();status->setText(QString("%1 contacts · %2").arg(contacts.size()).arg(log.directory()));};
+    connect(refresh,&QPushButton::clicked,this,reload);reload();connect(close,&QPushButton::clicked,this,&QDialog::accept);
+    connect(exportCsv,&QPushButton::clicked,this,[=,this]{const auto path=QFileDialog::getSaveFileName(this,"Export contact log",{},"CSV (*.csv)");if(path.isEmpty())return;QString error;status->setText(log.exportCsv(path,error)?"Exported contacts to "+path:error);});
+    auto show=[=,this](int role){const int selected=table->currentRow();if(selected<0)return;const auto path=table->item(selected,7)->data(role).toString();QImage image(path);if(image.isNull()){status->setText("No saved picture is available for this contact.");return;}QDialog dialog(this);dialog.setWindowTitle(QFileInfo(path).fileName());dialog.resize(800,600);auto* body=new QVBoxLayout(&dialog);auto* view=new ImageView;view->setImage(image);body->addWidget(view);auto* buttons=new QDialogButtonBox(QDialogButtonBox::Close);body->addWidget(buttons);connect(buttons,&QDialogButtonBox::rejected,&dialog,&QDialog::reject);dialog.exec();};
+    connect(showRx,&QPushButton::clicked,this,[=]{show(Qt::UserRole);});connect(showTx,&QPushButton::clicked,this,[=]{show(Qt::UserRole+1);});
+}

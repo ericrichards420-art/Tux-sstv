@@ -1,0 +1,351 @@
+#pragma once
+#include <QDateTime>
+#include <QCheckBox>
+#include "core/codec.h"
+#include "core/receiver.h"
+#include "core/composition.h"
+#include "core/templates.h"
+#include "core/audio_levels.h"
+#include "radio.h"
+#include "radio_profiles.h"
+#include "remote_station.h"
+#include "tx_edit_state.h"
+#include <optional>
+#include <QFutureWatcher>
+#include <QElapsedTimer>
+#include <QMainWindow>
+#include <QProcess>
+#include <QTimer>
+#include <QTemporaryDir>
+#include <QPointer>
+#include <functional>
+class QLabel;
+class QComboBox;
+class QLineEdit;
+class QPushButton;
+class QDoubleSpinBox;
+class QProgressBar;
+class QListWidget;
+class SignalView;
+class ImageView;
+class CaptionPreview;
+class QTabWidget;
+class QWidget;
+class QWizard;
+class QAction;
+class RadioControls;
+class RadioFrontend;
+class AudioLevelsPanel;
+class QUndoStack;
+class TransmitMonitor;
+class VoiceCapture;
+class VoicePlayer;
+class RemoteSpeaker;
+class QDialog;
+class AudioWizard;
+class QSpinBox;
+class MainWindow : public QMainWindow {
+    Q_OBJECT
+public:
+    explicit MainWindow(QWidget* parent=nullptr,std::unique_ptr<radio::Backend> backend={});
+    ~MainWindow() override;
+    void saveScreenshot(const QString& path);
+    void openReceiveWav(const QString& path);
+    void setRemoteConfig(const remote::Config&);
+signals:
+    void radioProfilesChanged();
+protected:
+    void closeEvent(QCloseEvent*) override;
+    void resizeEvent(QResizeEvent*) override;
+    bool eventFilter(QObject*,QEvent*) override;
+private:
+    remote::Config remoteConfig_;
+    remote::Server* remoteServer_=nullptr;
+    remote::Client* remoteClient_=nullptr;
+    TransmitMonitor* remoteMonitor_=nullptr;
+    bool remoteMonitorShowing_=false;
+    void startRemoteTransmitMonitor(const QString&);
+    void showRemoteTransmitMonitor(bool fromShack=false);
+    void startLocalTransmitEcho(const QString&);
+    void releaseLocalTransmit();
+    bool localSharedTx_=false,localEchoActive_=false,localEchoPlaybackOk_=false,remotePeerMonitor_=false;
+    QLabel* remoteStatus_=nullptr;
+    bool remoteTx_=false,remoteHostTx_=false,remoteManualKey_=false;
+    quint64 remoteConfigGeneration_=0;
+    bool remoteClientMode() const{return remoteConfig_.role==remote::Role::Client;}
+    bool remoteHostControlled() const{return remoteServer_&&remoteServer_->hasClient();}
+    bool remoteBusy() const{return profileApplying_||audioSetupBusy_||radioSetupBusy_||voiceHeld_||voiceHostActive_||remoteTx_||remotePeerMonitor_||(remoteConfig_.role==remote::Role::Host&&remoteServer_&&remoteServer_->remoteTransmitBusy());}
+    bool audioSetupBusy_=false,remoteAudioLease_=false;
+    QPointer<AudioWizard> audioWizard_;
+    qint64 audioWizardId_=0;
+    quint64 audioWizardSession_=0;
+    QString audioWizardRestoreError_;
+    void saveAudioWizard(AudioWizard*);
+    void cancelAudioWizard();
+    void handleAudioWizardRequest(qint64,const QJsonObject&);
+    void showRemoteAudioWizard();
+    bool radioSetupBusy_=false;
+    void showRadioSetup();
+    QString radioSetupError() const;
+    void applyRadioSetup(const radio::Config&,std::function<void(QString)>,quint64 session=0);
+    VoiceCapture* voiceCapture_=nullptr;
+    VoicePlayer* voicePlayer_=nullptr;
+    QPushButton* voicePtt_=nullptr;
+    QComboBox* voiceMicrophone_=nullptr;
+    QSpinBox* voiceGain_=nullptr;
+    QProgressBar* voiceMeter_=nullptr;
+    QLabel* voiceStatus_=nullptr;
+    QPushButton* micCheckButton_=nullptr;
+    QPointer<QDialog> micCheckDialog_;
+    bool micCheckActive_=false;
+    void showMicCheck();
+    RemoteSpeaker* remoteSpeakerPlayer_=nullptr;
+    QWidget* remoteSpeakerControls_=nullptr;
+    QCheckBox* listenToShack_=nullptr;
+    QComboBox* remoteSpeaker_=nullptr;
+    QSpinBox* remoteSpeakerVolume_=nullptr;
+    QLabel* remoteSpeakerStatus_=nullptr;
+    QString remoteSpeakerDevice_,remoteSpeakerError_;
+    bool remoteRadioDisconnectPending_=false;
+    bool voiceHeld_=false,voiceHostActive_=false,voiceReady_=false,voiceUsesPtt_=false,voiceReserved_=false;
+    quint64 voiceInputGeneration_=0,voiceOutputGeneration_=0;
+    std::function<void(QString)> voiceOutputReady_;
+    void setupVoice();
+    void startVoice();
+    void stopVoice();
+    void startVoiceOutput(std::function<void(QString)>);
+    void stopVoiceOutput();
+    void updateVoiceControls();
+    void updateRemoteListening();
+    radio::Config displayedRadioConfig() const;
+    void setupRemote();
+    void showRemoteSetup();
+    void applyRemoteConfig(const remote::Config&);
+    void updateRemoteStatus();
+    void publishRemoteState();
+    void handleRemoteRequest(qint64,const QString&,const QJsonObject&);
+    QString remoteTransmitError() const;
+    void consumeCapture(const QByteArray&);
+    struct JobResult {
+        QString error,outputPath;
+        sstv::Audio audio;
+        sstv::DecodeResult decoded;
+        std::vector<sstv::DecodeResult> frames;
+        QString detectedMode;
+        sstv::MorseReading morse;
+        bool captureReceive=false;
+        unsigned captureGeneration=0;
+        bool receive=false,preview=false,live=false;
+        qint64 morseStartMs=-1;
+        std::vector<sstv::AudioLevel> transmitLevels;
+    };
+    ImageView *rxView_,*rxFullScreenView_;
+    CaptionPreview *txView_,*txFullScreenView_;
+    QWidget* rxFullScreen_;
+    QWidget* txFullScreen_=nullptr;
+    QWidget* txProgressPanel_=nullptr;
+    QLabel *txInfo_,*rxInfo_,*status_,*recordInfo_,*txProgressInfo_,*rxDetected_,*autoSaveInfo_;
+    QComboBox *txMode_,*rxMode_,*channel_;
+    QLineEdit *call_,*inputDevice_,*outputDevice_;
+    QDoubleSpinBox *clock_,*offset_,*start_;
+    QCheckBox *autoClock_,*autoFrequency_;
+    QCheckBox *showCallsignOnImage_,*morseAfterTx_;
+    QPushButton *open_,*pattern_,*export_,*decode_,*play_,*record_,*stop_,*saveRx_,*compose_,*templates_;
+    QPushButton *addStock_=nullptr,*removeStock_=nullptr,*screenshots_=nullptr,*selfie_=nullptr;
+    QAction* screenshotAction_=nullptr;
+    QAction* selfieAction_=nullptr;
+    QString screenshotDirectory() const;
+    void openScreenshots();
+    void takeSelfie();
+    QPushButton* saveTxImage_=nullptr;
+    QAction* saveTxImageAction_=nullptr;
+    void saveTransmitImage();
+    QPushButton* addReceivedInset_=nullptr;
+    QAction* pictureInPictureAction_=nullptr;
+    sstv::ImageInset inset_;
+    QRect insetBounds_;
+    void showPictureInPicture(const QImage& received={});
+    void loadUserImages(const QStringList& paths);
+    void removeSelectedStockImages();
+    QPushButton* reply_=nullptr;
+    QLabel* receivedCallLabel_=nullptr;
+    QString receivedCall_,receivedCallSource_;
+    QLineEdit* morseText_=nullptr;
+    QLabel* morseStatus_=nullptr;
+    QPushButton* useMorseCall_=nullptr;
+    QString morseCandidate_;
+    void showMorse(const sstv::MorseReading& reading);
+    quint64 receivedFrameId_=0;
+    void setReceivedCall(const QString& call,bool attachToImage=false,const QString& source={});
+    void replyToReceived();
+    QProgressBar* progress_;
+    QProgressBar* txProgress_;
+    QListWidget *history_,*stock_,*tuxPictures_,*holidayPictures_;
+    QTabWidget *viewerTabs_,*modeTabs_,*galleryTabs_;
+    QWidget *rxPage_,*txPage_,*syncPage_,*radioPage_,*operatingControls_;
+    RadioFrontend* radioFrontend_=nullptr;
+    AudioLevelsPanel* audioLevels_=nullptr;
+    sstv::PcmInputGain captureGain_;
+    QElapsedTimer outputMeterClock_;
+    QAction* settingsAction_;
+    radio::Controller* radio_;
+    radio::Config radioConfig_;
+    profiles::Store profiles_;
+    bool profilesReady_=false,profileApplying_=false,profileSaveFailed_=false;
+    QString profileSettingsFile_;
+    QSettings::Format profileSettingsFormat_=QSettings::NativeFormat;
+    QTimer profileSaveTimer_;
+    QComboBox* profileChoice_=nullptr;
+    QPushButton* profilesButton_=nullptr;
+    QJsonObject profileUiCatalog_;
+    void setupProfiles();
+    profiles::Settings currentProfileSettings() const;
+    void saveActiveProfile();
+    QString persistProfiles(bool writeActive=false);
+    QJsonObject displayedProfiles() const;
+    void updateProfileUi();
+    void showProfiles();
+    QString profileOperationError() const;
+    void changeProfile(const QString&,const QString&,const QString&,const QString&,std::function<void(QString)>,quint64 session=0);
+    void applyProfileSettings(const profiles::Settings&);
+
+    QPointer<RadioControls> radioControls_;
+    QAction *radioConnect_=nullptr,*radioDisconnect_=nullptr,*radioRelease_=nullptr;
+    enum class RadioTxPhase {Idle,Keying,Lead,Audio,Tail,Releasing};
+    RadioTxPhase radioTxPhase_=RadioTxPhase::Idle;
+    QTimer radioLead_,radioTail_,radioWatchdog_;
+    QElapsedTimer radioTailClock_;
+    quint64 radioTxGeneration_=0;
+    QString pendingPlaybackPath_,txStopReason_;
+    std::vector<QPushButton*> modeButtons_;
+    QStringList stockPaths_;
+    SignalView* signal_;
+    QLabel* receiveState_;
+    bool backgroundReceiving_=false,receiveSuspended_=false,receiveUpdateQueued_=false;
+    QTimer receiveRetry_;
+    QElapsedTimer captureDataClock_;
+    int receiveRetryDelayMs_=1000;
+    QString captureDevice_,receiveError_;
+    void queueReceiveUpdate();
+    void requestReceive();
+    void receiveInputFailed(const QString& error);
+    void updateReceive();
+    void stopBackgroundReceive();
+    void saveCaptureAudio();
+    QImage source_,received_;
+    QFutureWatcher<JobResult> job_,receiveJob_;
+    sstv::Cancel cancel_,receiveCancel_;
+    std::shared_ptr<sstv::Receiver> receiver_;
+    QProcess capture_,playback_;
+    QTimer refresh_,captureLimit_,txProgressTimer_,txPointerHide_;
+    QPoint lastTxPointerPosition_;
+    void hideTxPointer();
+    void prepareTxPointerTracking();
+    QElapsedTimer txPlaybackClock_;
+    qint64 txDurationMs_=0;
+    qint64 txMorseStartMs_=-1;
+    bool morseEnabled_=false;
+    int morseWpm_=20,morseTone_=800;
+    sstv::TextOverlay overlay_; // Blank style defaults for the next text block.
+    QList<sstv::TextOverlay> captions_; // Placed blocks on the current picture only.
+    sstv::CallsignPlacement callsignPlacement_;
+    QRect callsignBounds_;
+    QMap<QString,QRect> captionBounds_;
+    QString imageCallsign() const;
+    sstv::Composition transmitComposition() const;
+    bool canMoveTxText() const;
+    void updateTxDragRegions();
+    void resetCallsignPosition();
+    QUndoStack* txUndo_=nullptr;
+    QAction *undoTxAction_=nullptr,*redoTxAction_=nullptr;
+    QPushButton *undoTxButton_=nullptr,*redoTxButton_=nullptr;
+    std::optional<TxEditState> txDragBefore_;
+    QString txDragLabel_;
+    TxEditState txEditState() const;
+    void restoreTxEditState(const TxEditState&);
+    void recordTxEdit(const TxEditState& before,const QString& label);
+    void pushTxEdit(const TxEditState& before,const TxEditState& after,const QString& label);
+    void beginTxDrag(const QString& key);
+    void finishTxDrag();
+    void resetTxHistory();
+    void updateTxUndoActions();
+    void undoTx();
+    void redoTx();
+    void showCaptionEditor(int index);
+    sstv::TemplateFields templateFields_;
+    bool templateEnabled_=false;
+    QStringList recentEmojis_;
+    int emojiTone_=0;
+    QString skinId_="classic";
+    bool txPreparing_=false;
+    QByteArray rawCapture_;
+    QTemporaryDir temporary_;
+    QString historyPath_,lastAudioPath_;
+    QString autoSaveKey_,autoSavePath_;
+    QImage autoSavedImage_;
+    sstv::DecodeResult pendingReceiveSave_;
+    bool autoSavedComplete_=false;
+    bool recording_=false,closing_=false,stopCaptureRequested_=false,discardCapture_=false,playbackStopped_=false;
+    int lastPreviewBytes_=0;
+    unsigned captureGeneration_=0;
+    void buildUi(int implementedCount,int targetCount);
+    void showTemplates();
+    void clearImageFields();
+    QImage composedTransmitImage() const;
+    void showSettings();
+    void showSettingsPage(int index);
+    void showAudioWizard();
+    void showSetupWizard();
+    QPointer<QWizard> setupWizard_;
+    bool prepareSetup(const QString&,std::function<void()>);
+    void useLocalSetup(bool audio);
+    bool setupWaiting_=false;
+    void logContact();
+    void showContactLog();
+    QString receivedMode_;
+    QDateTime receivedUtc_;
+    double receivedFrequencyHz_=0;
+    QAction* audioWizardAction_=nullptr;
+    void setupRadio();
+    void connectRadio();
+    void showRadioControls();
+    void showAdvancedRadioControls();
+    void stopRadioTransmission();
+    void updateRadioStatus();
+    bool automaticPtt() const;
+    void startPreparedPlayback(const QString& path,qint64 audioMs,qint64 morseStart);
+    void launchPlayback();
+    void finishPlayback(bool success,const QString& error={});
+    void releaseRadioTx(bool success,const QString& message);
+    void showComposer();
+    void applySkin(const QString& id);
+    void setAutoSaveState(bool success);
+    void loadStock();
+    void loadBuiltInPictures();
+    void showTestPatterns();
+    void selectTestPattern(const QString& id);
+    QString selectedPattern_="test-pattern";
+    void openImage();
+    void updateTx();
+    void updateImages();
+    QImage transmitImage() const;
+    void exportAudio(bool play);
+    void decodeFile();
+    void beginJob(std::function<JobResult(sstv::Cancel,sstv::Progress)> work,bool capture=false);
+    void finishJob(bool capture=false);
+    void updateEnabled();
+    void updatePlaybackProgress();
+    void endPlaybackProgress(bool success);
+    void toggleRecording();
+    void readCapture();
+    void decodeCapture(bool partial);
+    void showReceiveMode(const QString& id,bool automatic);
+    sstv::ModeDetected modeNotification(bool automatic,bool live=false);
+    void stopAll();
+    void saveReceived();
+    void autoSaveReceived(const sstv::DecodeResult& frame,const QString& key);
+    void resetAutoSave();
+    void loadHistory();
+    void saveSettings();
+    sstv::DecodeOptions rxOptions(bool partial=false) const;
+};

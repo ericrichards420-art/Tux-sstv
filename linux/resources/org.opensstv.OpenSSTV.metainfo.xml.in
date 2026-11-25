@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.opensstv.OpenSSTV</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <name>Tux-sstv</name>
+  <summary>Send and receive SSTV pictures over amateur radio</summary>
+  <developer id="org.opensstv">
+    <name>Eric Richards (KI5BZO)</name>
+  </developer>
+  <description>
+    <p>Tux-sstv brings slow-scan television to your Linux desktop. Share pictures
+    over amateur radio with automatic reception and easy image preparation.</p>
+    <ul>
+      <li>Send and receive pictures in 43 SSTV modes, with automatic receive mode detection.</li>
+      <li>Watch incoming audio on a live waterfall and save received pictures automatically.</li>
+      <li>Set up audio devices and levels, CAT/Hamlib and remote operation with one guided Setup wizard.</li>
+      <li>Make TV-style news, breaking news, scoreboards and show cards in TV Studio.</li>
+      <li>Create weather cards with temperature, wind speed, rainfall, humidity and barometric pressure.</li>
+      <li>Prepare pictures with clean text, callsigns, templates and the full Unicode 17.0 emoji collection, choose a saved screenshot or take a webcam selfie.</li>
+      <li>Choose from 14 full-size Tux radio cartoons and use them in any SSTV mode.</li>
+      <li>Send greetings for all 11 U.S. federal holidays, plus Easter and Halloween, with full-size Tux pictures in Holidays.</li>
+      <li>Control supported radios and PTT through Hamlib, with named profiles for each radio’s audio and CAT setup.</li>
+      <li>Read live Morse callsigns automatically and confirm them for Reply and contact logging.</li>
+      <li>Browse receive history and encode or decode WAV recordings.</li>
+      <li>Operate the shack PC's radio and USB audio from a laptop over home Wi-Fi, including click-to-lock voice PTT.</li>
+    </ul>
+    <p>Local SSTV operation needs no account. A suitable radio and audio connection
+    are needed for on-air operation. Radio control availability depends on your
+    radio and its Hamlib backend.</p>
+  </description>
+  <launchable type="desktop-id">opensstv.desktop</launchable>
+  <provides>
+    <binary>tux-sstv</binary>
+    <binary>opensstv</binary>
+  </provides>
+  <categories>
+    <category>Network</category>
+    <category>HamRadio</category>
+  </categories>
+  <keywords>
+    <keyword>SSTV</keyword>
+    <keyword>Amateur radio</keyword>
+    <keyword>Slow scan television</keyword>
+    <keyword>SignaLink</keyword>
+  </keywords>
+  <releases>
+    <release type="stable" version="@PROJECT_VERSION@" date="2026-11-24">
+      <description>
+        <p>Fit complete emoji glyphs inside the picker at different display
+        scales. Keep ordinary text and spaces on regular text fonts while
+        emoji use their color font. Preserve repeated spaces and line breaks
+        in image captions and add a system text font fallback to templates.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.14.2" date="2026-11-24">
+      <description>
+        <p>Use SignaLink or another audio interface together with a separate
+        CAT cable. Choose the CAT port and matching baud rate without changing
+        receive/transmit sound devices. Add a local serial-port refresh and
+        make the audio-interface PTT and CAT control arrangement clear.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.14.1" date="2026-11-24">
+      <description>
+        <p>Make SignaLink USB an easy-to-find audio-interface choice for any
+        compatible radio. Label its USB Audio CODEC sound devices clearly,
+        select receive and transmit together and keep CAT model selection
+        separate. Preserve selected device IDs across profile changes and
+        refreshes, with distinct choices for multiple USB interfaces.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.14.0" date="2026-11-23">
+      <description>
+        <p>Automatically read live Morse callsigns alongside SSTV reception
+        on local/shack and remote computers. Show decoded text and estimated
+        tone/speed in RX. Confirm a Morse callsign before using it for Reply,
+        Log contact or saved image metadata; preserve FSKID until confirmation.</p>
+        <p>Use the existing audio stream and worker, preserve CW after image
+        boundaries and keep the automatic capture recovery fixes.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.13.5" date="2026-11-23">
+      <description>
+        <p>Improve automatic receive startup when the opening leader tone is
+        partly lost but the complete mode code remains available. Validate
+        the remaining leader, mode word, parity/checksum and stop framing.
+        Keep the full preamble requirement when interrupting an active image.
+        Test late input opening and a muted leader across all 43 modes, plus
+        consecutive local and remote receptions.</p>
+        <p>Automatically retry a local or shack capture process that remains
+        open but stops delivering audio data. Keep quiet audio streams running;
+        verify restored shack input reaches the remote laptop.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.13.4" date="2026-11-23">
+      <description>
+        <p>Keep automatic reception and remote laptop listening running while
+        taking a selfie or choosing a screenshot, without resetting incoming
+        images when the dialog opens or closes.</p>
+        <p>Improve automatic receive detection when brief audio dropouts affect
+        SSTV mode headers. Sample several positions within each header symbol
+        while retaining parity, checksum, leader and stop-tone validation.
+        Cover standard, extended and narrow headers and consecutive live
+        transmissions with regression tests.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.13.3" date="2026-11-23">
+      <description>
+        <p>Complete the Holidays gallery with Tux radio artwork for all 11
+        annual U.S. federal holidays. Keep Easter and Halloween as seasonal
+        extras. Include full-size originals for any SSTV mode and space for
+        the operator's own callsign and greeting.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.13.2" date="2026-11-23">
+      <description>
+        <p>Add a separate Holidays gallery with six full-size seasonal radio
+        pictures for Christmas, Thanksgiving, Halloween, New Year's, Easter
+        and the Fourth of July. Add a callsign or greeting and use any SSTV mode.
+        Preserve the existing Tux collection and PTT reliability fixes.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.13.1" date="2026-11-23">
+      <description>
+        <p>Add a built-in gallery of 14 full-size Tux radio cartoons, ready for
+        any SSTV mode with the operator's own callsign and text.</p>
+        <p>Prevent cancelled remote voice startup from
+        proceeding, preserve uncertain PTT status across repeated disconnects,
+        and keep expired PTT-test timers from stopping a later transmission.
+        Stop stalled manual or SignaLink playback after its expected duration.
+        Include Qt and Hamlib license notices and a concise setup guide.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.13.0" date="2026-11-23">
+      <description>
+        <p>Add named radio profiles for CAT/PTT, audio devices, application
+        audio levels and receive calibration. Save setups for multiple radios,
+        switch from the Radio tab and manage shack profiles from a laptop.
+        Preserve the existing setup and require explicit CAT connection after
+        switching, without automatic transmission.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.12.0" date="2026-11-23">
+      <description>
+        <p>Add the complete Unicode Emoji 17.0 collection: 3,953 emoji and
+        components, searchable names and keywords, ten categories and all flags.
+        Browse preferred or mixed skin tones, preserve joined sequences and
+        use Noto Color Emoji artwork in the picker and transmitted pictures.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.11.0" date="2026-11-22">
+      <description>
+        <p>Fix TS-990S USB-D1/D2/D3 and LSB data modes, with immediate mode
+        selection and confirmed radio readback. Respect microphone versus
+        USB/data PTT routing for remote voice. Add a USB/data PTT setup preset
+        and use the shack's actual radio model on remote controls.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.10.1" date="2026-11-22">
+      <description>
+        <p>Stop laptop speaker audio immediately when Radio Disconnect is
+        selected. Keep listening muted while a configured radio is disconnected,
+        including when Wi-Fi and USB receive audio remain active. Preserve
+        listening for audio-only stations without CAT.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.10.0" date="2026-11-22">
+      <description>
+        <p>Check voice microphone levels without transmitting. Live input and
+        voice meters identify quiet speech, useful headroom, excessive gain and
+        input clipping. Adjust gain live and save only with Use settings. Remote
+        SSTV reception continues while laptop speakers mute for the check.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.9.0" date="2026-11-22">
+      <description>
+        <p>Listen to the shack receiver on laptop speakers or a headset, with
+        local device selection and independent volume. Listening mutes during
+        voice PTT, SSTV transmission and setup, then resumes on receive. The
+        existing click-to-lock microphone PTT sends speech to the shack radio.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.8.2" date="2026-11-22">
+      <description>
+        <p>Remove the long instructional hover popup from the photo gallery
+        shared by the TX and RX tabs.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.8.1" date="2026-11-22">
+      <description>
+        <p>Stop Station / audio device fields blinking and moving. Combine
+        automatic receive and Hamlib status in one summary, keep a fixed summary
+        height, and prevent long audio device names from widening the sidebar.
+        Keep device details available while recording and operating remotely.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.8.0" date="2026-11-22">
+      <description>
+        <p>Refresh the Radio tab with a larger frequency display, segmented
+        signal meter, live filter/power/RIT readouts and grouped tuning controls.
+        Station setup and click-to-lock voice PTT share one themed front panel.
+        Frequency, voice PTT and Stop stay visible while scrolling to waterfall
+        and audio levels. Preserve stable remote receive status and controls.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.7.2" date="2026-11-22">
+      <description>
+        <p>Fix the blinking receive message and shack address by removing
+        competing audio/status updates. The address stays on its own line while
+        real receive, recording, transmit and error states remain visible.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.7.1" date="2026-11-22">
+      <description>
+        <p>Reduce remote-control flickering by keeping control states stable,
+        avoiding repeated badge/PTT restyling and unchanged picture redraws, and
+        filtering redundant station snapshots. Live audio, meters and real
+        transmit/receive state changes remain responsive.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.7.0" date="2026-11-22">
+      <description>
+        <p>TV Studio adds Newsroom, Breaking News, Sports Scoreboard, Now Showing
+        and On Air templates, with your own headlines, ticker text, scores and
+        program information. Photos, colors, movable text and saved layouts work
+        with all five designs.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.6.0" date="2026-11-22">
+      <description>
+        <p>Add wind speed, rainfall, humidity and barometric pressure to weather
+        cards, with unit conversion, movable readings and a scrolling editor.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.5.1" date="2026-11-22">
+      <description>
+        <p>A penguin holding a camera now welcomes you in the app icon, About,
+        radio header and setup screens, with crisp matching vector artwork.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.5.0" date="2026-11-22">
+      <description>
+        <p>One Setup wizard guides station and remote connection, audio devices
+        and levels, CAT/Hamlib and a saved-settings summary. Configure a local
+        radio or the shack PC over Wi-Fi while keeping laptop profiles separate.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.4.0" date="2026-11-22">
+      <description>
+        <p>OpenSSTV is now Tux-sstv, with a friendly Tux penguin icon and
+        mascots in About, the radio header and audio setup. Existing radio,
+        audio and remote settings, image history and saved contacts stay
+        available. The former command remains supported for compatibility.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.3.4" date="2026-11-22">
+      <description>
+        <p>Keep Settings and audio/radio setup reachable during remote operation.
+        Busy setup offers Stop and open setup. Clear local USB shortcuts help
+        configure a radio attached to this computer, including the TS-990S,
+        while retaining saved remote connection details.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.3.3" date="2026-11-21">
+      <description>
+        <p>Restore the audio setup wizard in local and remote operation.
+        Open it from Option, Radio or the Radio-tab button. Configure the
+        shack's SignaLink or USB sound card from the laptop, including input
+        metering, test tones and playback-level optimization.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.3.2" date="2026-11-21">
+      <description>
+        <p>Restore Hamlib setup from the Radio tab while operating remotely.
+        View and save the shack's radio model, CAT connection and PTT settings
+        from the laptop, or configure the paired shack directly while idle.
+        A dedicated Hamlib setup menu keeps it separate from Wi-Fi pairing.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.3.1" date="2026-11-21">
+      <description>
+        <p>Click PTT once to lock voice transmission on and again to stop.
+        A red checked button shows the active lock. Switching tabs or windows
+        keeps voice active; Stop, disconnect and audio errors clear it.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.3.0" date="2026-11-21">
+      <description>
+        <p>Hold PTT in the Radio tab to stream your laptop microphone over home
+        Wi-Fi through the shack radio. Select a local microphone, adjust gain
+        and watch its level. Voice shares the SSTV transmitter and stops on
+        release, connection loss or audio failure.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.2.0" date="2026-11-21">
+      <description>
+        <p>Transmit from either the shack PC or a connected laptop. The other
+        computer automatically shows the transmitted picture in RX, building
+        from live audio. A shared transmit lock prevents overlapping sends.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.1.1" date="2026-11-21">
+      <description>
+        <p>Watch a remote laptop's transmitted picture build line by line on the
+        shack PC. The RX display and waterfall monitor outgoing audio during
+        playback, preserving partial pictures when stopped.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.1.0" date="2026-11-21">
+      <description>
+        <p>Operate your shack from another room. Connect a laptop over home Wi-Fi
+        to receive live audio, prepare and transmit pictures, and control the
+        shack radio. Pair with a connection key; transmission stops if the
+        laptop connection is lost.</p>
+      </description>
+    </release>
+    <release type="stable" version="1.0.0" date="2026-11-21">
+      <description>
+        <p>OpenSSTV 1.0 Final Release includes automatic reception, 43 SSTV modes,
+        guided audio setup, Hamlib radio controls, a picture editor and smoother
+        text placement while receiving. Application details and release notes
+        are now included for software centers.</p>
+      </description>
+    </release>
+  </releases>
+</component>

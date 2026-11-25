@@ -1,0 +1,10 @@
+/* XPM */
+static const char *arrow_up_light[] = {
+"9 5 2 1",
+"  c None",
+"x c #ffffff",
+"    x    ",
+"   xxx   ",
+"  xxxxx  ",
+" xxxxxxx ",
+"xxxxxxxxx"};

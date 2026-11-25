@@ -1,0 +1,2 @@
+# Preserve the released source files' existing line endings on every platform.
+* -text

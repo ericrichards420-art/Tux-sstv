@@ -1,0 +1,35 @@
+<RCC>
+  <qresource prefix="/pictures/tux">
+    <file alias="catalog.json">pictures/tux/catalog.json</file>
+    <file alias="cq-radio.png">pictures/tux/cq-radio.png</file>
+    <file alias="mountain-radio.png">pictures/tux/mountain-radio.png</file>
+    <file alias="space-station.png">pictures/tux/space-station.png</file>
+    <file alias="lighthouse.png">pictures/tux/lighthouse.png</file>
+    <file alias="retro-radio-shack.png">pictures/tux/retro-radio-shack.png</file>
+    <file alias="forest-field-day.png">pictures/tux/forest-field-day.png</file>
+    <file alias="rover-adventure.png">pictures/tux/rover-adventure.png</file>
+    <file alias="aurora-radio.png">pictures/tux/aurora-radio.png</file>
+    <file alias="pirate-radio.png">pictures/tux/pirate-radio.png</file>
+    <file alias="steam-train.png">pictures/tux/steam-train.png</file>
+    <file alias="balloon-adventure.png">pictures/tux/balloon-adventure.png</file>
+    <file alias="waterfall-expedition.png">pictures/tux/waterfall-expedition.png</file>
+    <file alias="rainy-radio-night.png">pictures/tux/rainy-radio-night.png</file>
+    <file alias="radio-workshop.png">pictures/tux/radio-workshop.png</file>
+  </qresource>
+  <qresource prefix="/pictures/holidays">
+    <file alias="catalog.json">pictures/holidays/catalog.json</file>
+    <file alias="new-year-radio.png">pictures/holidays/new-year-radio.png</file>
+    <file alias="martin-luther-king-jr-radio.png">pictures/holidays/martin-luther-king-jr-radio.png</file>
+    <file alias="washington-birthday-radio.png">pictures/holidays/washington-birthday-radio.png</file>
+    <file alias="memorial-day-radio.png">pictures/holidays/memorial-day-radio.png</file>
+    <file alias="juneteenth-radio.png">pictures/holidays/juneteenth-radio.png</file>
+    <file alias="fourth-of-july-radio.png">pictures/holidays/fourth-of-july-radio.png</file>
+    <file alias="labor-day-radio.png">pictures/holidays/labor-day-radio.png</file>
+    <file alias="columbus-day-radio.png">pictures/holidays/columbus-day-radio.png</file>
+    <file alias="veterans-day-radio.png">pictures/holidays/veterans-day-radio.png</file>
+    <file alias="thanksgiving-radio.png">pictures/holidays/thanksgiving-radio.png</file>
+    <file alias="christmas-radio.png">pictures/holidays/christmas-radio.png</file>
+    <file alias="easter-radio.png">pictures/holidays/easter-radio.png</file>
+    <file alias="halloween-radio.png">pictures/holidays/halloween-radio.png</file>
+  </qresource>
+</RCC>

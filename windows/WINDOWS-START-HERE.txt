@@ -1,0 +1,278 @@
+Tux-sstv Windows port - 1.15.3 development preview
+Developed by Eric Richards - KI5BZO
+
+This source kit builds the Windows program, portable ZIP and Setup.exe.
+The Windows 1.15.0 program has passed all four native Windows test suites.
+Eric has also confirmed sending and receiving SSTV images over the air on
+Windows. The original Linux 1.14.0 program remains separate.
+
+Make Windows Installer.cmd can package a completed build without rebuilding
+it. To get the new SignaLink UI, first run Install and Build Tux-sstv.cmd
+from this source kit. The separate Installer Maker ZIP still contains the
+previously tested 1.15.0 program.
+
+EMOJI PICKER AND IMAGE TEXT SPACING
+
+Version 1.15.3 fits complete emoji glyphs inside their picker cells, including
+scaled displays. Captions and template fields use a regular text font for
+ordinary text and spaces, with color fonts applied to emoji spans. Run the
+full build to get the updated program and installer.
+
+SIGNALINK OR OTHER AUDIO INTERFACE + SEPARATE CAT CABLE
+
+Keep your working sound device selected in the audio step. In the CAT step,
+click Use audio interface + separate CAT cable. Choose your radio model,
+select the CAT cable's COM port and match the CAT baud rate to the radio.
+Refresh ports reloads local serial ports and keeps your current selection.
+Next saves CAT settings without changing the sound devices. Finish, then
+use Radio > Connect. SignaLink handles PTT; CAT controls frequency and mode.
+This arrangement works with any compatible radio. See docs/SEPARATE_CAT.md.
+
+SIGNALINK USB SETUP - FOR ANY COMPATIBLE RADIO
+
+This version improves the generic SignaLink USB audio-interface choice.
+Run Install and Build Tux-sstv.cmd to compile the update and create the
+new 1.15.3 Setup.exe. The separate old Installer Maker ZIP packages the
+previous 1.15.0 program; it cannot add this new interface change.
+
+In Setup wizard, continue to Audio devices and levels, then click
+Choose audio interface, devices and levels. Select SignaLink USB under
+Audio interface. In Sound device, choose the SignaLink USB entry showing
+your connected USB Audio CODEC. This sets receive and transmit together.
+If more than one looks alike, unplug the SignaLink and Refresh, reconnect
+it and Refresh, then choose the matching device. Finish to save.
+
+The SignaLink profile uses the interface's audio-operated PTT. Radio model
+and optional CAT settings remain independent. Merely selecting the audio
+interface does not play a tone or key a radio. Windows name styles such as
+Microphone - USB Audio CODEC, Line - USB Audio CODEC and Speakers - USB
+Audio CODEC can be paired without entering manual WinMM IDs.
+
+Target: 64-bit Windows 10 (version 1809 or newer) or Windows 11.
+Build tools: MSYS2 UCRT64 / MinGW-w64, Qt 6.9 through 6.12.
+Codex and ChatGPT do not need to be installed on the Windows computer.
+The build uses the compiler tools supplied by MSYS2.
+Includes SSTV, automatic Morse reading, built-in pictures, setup, profiles,
+CAT/PTT, remote voice/listening, webcam selfies and screenshot selection.
+The Linux branch of the audio selector retains the existing ALSA helpers.
+
+AUTOMATIC DOWNLOAD AND BUILD
+
+Before starting on Windows 10, press Windows+R, type winver, then press Enter.
+Check that the version is 1809 or newer. In Settings > System > About, check
+that System type says 64-bit operating system.
+
+1. Copy the complete kit ZIP to Windows and extract it into a folder you own.
+   Do not run from inside the ZIP or copy only the launcher out of the kit.
+2. Double-click Install and Build Tux-sstv.cmd.
+3. Leave its window open while it downloads and builds. It opens dist\windows
+   after success. Run Tux-sstv-1.15.3-windows-x64-setup.exe to install the
+   program and its Start menu icon. A desktop shortcut is optional.
+
+You do not need to install Codex, MSYS2, Qt or a compiler beforehand. The kit
+already includes the Tux-sstv source. The launcher uses Windows PowerShell 5.1
+to download a checksum-pinned MSYS2 base, extract its own build environment,
+finish updates in fresh shell sessions, install the compiler/Qt/USB packages,
+build Hamlib and Tux-sstv, run tests, collect runtime DLLs and create:
+
+   dist\windows\Tux-sstv\tux-sstv.exe
+   dist\windows\Tux-sstv-1.15.3-windows-x64-preview.zip
+   dist\windows\Tux-sstv-1.15.3-windows-x64-setup.exe
+
+Keep the complete Tux-sstv folder together, including the audio helper, DLLs,
+plugins and licenses. The script opens the folder and does not launch the
+radio application automatically. Internet access and disk space for the full
+compiler/Qt toolchain are required. Download and compile time varies by PC.
+
+By default, tools go into LOCALAPPDATA\TuxSSTVBuild\msys64. If that location
+contains spaces/non-ASCII characters, the default is C:\TuxSSTVBuild\msys64.
+An explicitly configured TUX_MSYS2_ROOT reuses that existing MSYS2 install.
+TUX_BUILD_TOOLS_DIRECTORY selects a different writable, space-free tool folder;
+TUX_BUILD_JOBS controls parallel compilation. No administrator elevation is
+requested automatically. Close other MSYS2 terminal windows before updating.
+
+On failure, keep build-windows-logs\bootstrap.log, automatic-build.log,
+build.log and tests.log. Run Show Windows Build Error.cmd to open the detailed
+test failure report, then send those error lines from any ChatGPT computer.
+Run the same Install and Build Tux-sstv.cmd again after fixing the reported
+problem. Verified downloads and installed tools are reused. If only installer
+creation fails, run Make Windows Installer.cmd to retry without recompiling.
+Installer details are saved in installer-logs\make-installer.log.
+
+HAMLIB BUILD REPAIR (precise_time.c / assert)
+
+This revision fixes the missing <assert.h> header in Hamlib 4.7.2's Windows
+timer source. The official source download is checksum-verified first; the
+fix is then applied automatically before compiling Hamlib. It does not disable
+compiler error checks or remove assertions.
+
+If an earlier kit stopped at "implicit declaration of function 'assert'":
+extract this updated complete ZIP into a new folder on your Windows Desktop,
+then open its Tux-sstv-Windows folder and double-click
+Install and Build Tux-sstv.cmd again. Keep your existing TuxSSTVBuild tools
+folder. The same installed compiler/Qt tools and verified Hamlib download are
+reused. Keep the older folder's build-windows-logs for troubleshooting.
+
+AUDIO SETUP COMPILE REPAIR (audio_wizard.cpp / txPercent)
+
+This revision also fixes the Windows-only "txPercent was not declared in
+this scope" error in AudioWizard::updateGuidance. The transmit percentage
+is now available to both the shared guidance and the Windows guidance.
+The Hamlib header repair above remains included. Extract this updated kit
+into a new folder and run Install and Build Tux-sstv.cmd to retry. Installed
+tools and the completed Hamlib installation are reused.
+
+FLAG EMOJI REPAIR (codec_tests / colorEmojiComposition / Canada flag)
+
+The kit embeds the complete Noto Color Emoji 2.051 font, with its license.
+It registers the font inside the application and test processes, so flags
+and joined emoji do not depend on Windows' installed emoji fonts. Nothing
+needs to be installed in Windows Fonts. The original Canada-flag color check
+remains enabled, and the Windows test run now also checks the full emoji
+catalog and rendering of all 270 flag entries. Qt 6.9 or newer is required
+for Windows bitmap color-font rendering; the current 6.12 tools are reused.
+
+If the build stopped with 327 passed and one failed at colorEmojiComposition,
+extract this updated kit into a new folder and run Install and Build
+Tux-sstv.cmd again. The completed tools/Hamlib installation are reused.
+
+NINJA TIMESTAMP REPAIR (build.ninja still dirty after 100 tries)
+
+ZIP extraction on another computer/timezone can leave source timestamps
+ahead of the build PC's clock. Before running CMake, the build now corrects
+only future-dated files in its extracted source folder to the current build
+machine's time. File contents and source hashes are unchanged. Build output,
+logs, bundled evidence, Git metadata and symlinks are excluded. It does not
+change Windows' date/time or the installed tools.
+
+If an updated source manifest is extracted over an existing build, source
+timestamps are refreshed once so Ninja rebuilds changed code despite the
+ZIP's fixed archival dates. Build objects and installed tools are retained.
+
+If this was your error, extract the updated kit into a new folder and run
+Install and Build Tux-sstv.cmd again. Existing tools and Hamlib are reused.
+Normal CMake regeneration stays enabled. A remaining manifest failure now
+also collects Ninja's dry-run explanation in build-windows-logs\build.log.
+
+The included Show Windows Build Error.cmd selects the newest build folder
+and includes compile/packaging/fatal errors as well as test assertions.
+WINDOWS-KIT-REVISION.txt identifies this source/build revision.
+
+CLEAN TEXT REPAIR (cleanTextPreservesBackgroundAndHasNoColoredFringe)
+
+Image captions and callsigns request grayscale rather than LCD subpixel
+antialiasing. Single-color captions are rasterized as opaque white coverage;
+the selected color and opacity are applied once after scaling. Callsigns
+also use one alpha-coverage value across R/G/B channels.
+Mixed captions retain their emoji colors. The strict original clean-text
+test remains enabled, with additional background/layer/opacity checks.
+Opacity checks compare half-opacity output with the same opaque glyphs,
+without assuming a particular Windows/Linux fallback font's peak brightness.
+
+Extract this updated kit into a new folder and run Install and Build
+Tux-sstv.cmd to retry; the existing tools and Hamlib are reused.
+
+QT PLATFORM PLUGIN REPAIR (available platform plugins: windows)
+
+The portable folder now includes both platforms\qwindows.dll for the GUI
+and platforms\qoffscreen.dll for command-line image/metadata operations.
+They are copied from the same installed Qt package before collecting all
+runtime DLL dependencies. qt.conf points to the portable plugin folders.
+File comparisons use the existing sha256sum tool, so the private MSYS2 base
+does not need cmp or another comparison package. Read failures stop with
+their real error instead of being reported as a mismatched Qt plugin.
+
+Staged version/mode checks explicitly use the bundled offscreen platform,
+without opening the radio GUI. Plugin-loader logs are saved as
+build-windows-logs\staged-version-plugins.log and staged-modes-plugins.log;
+a failure prints their last lines into build.log automatically. Both plugins
+are required before startup and by final bundle validation.
+
+Copy the updated complete kit, extract it and run Install and Build
+Tux-sstv.cmd again to rebuild/package with the existing installed tools.
+
+The launcher temporarily sets the execution policy for its own PowerShell
+process; it does not change the computer's saved execution-policy setting.
+
+MANUAL BUILD ALTERNATIVE
+
+If you prefer to manage the tools yourself, install MSYS2 from
+https://www.msys2.org/, finish pacman -Syu updates in its UCRT64 terminal,
+then run Install Windows Build Tools.cmd and Build Windows.cmd.
+
+Qt 6.12 is the last Qt release supporting Windows 10. CMake stops on Qt 6.13+
+rather than producing a Windows-11-only build. The current MSYS2 packages
+provide Qt 6.12. If that changes, use a matching Qt 6.9-6.12 toolchain for a
+Windows 10 build. TUX_HAMLIB_CACHE can override its writable space-free cache.
+
+SETUP.EXE INSTALLER AND START MENU ICON
+
+The automatic build now also creates a per-user installer. To package an
+existing completed dist\windows\Tux-sstv folder, double-click
+Make Windows Installer.cmd. This does not compile or launch the radio app.
+
+The separate Tux-sstv-Windows-Installer-Maker.zip already contains the working
+Windows program. Extract it on Windows and run Make Windows Installer.cmd.
+Its Setup.exe appears in output rather than dist\windows. The included
+program ZIP is checksum-verified before it is unpacked for packaging.
+
+On its first run the maker downloads Inno Setup 6.7.4 from the official
+release, checks the published SHA-256 digest or official publisher signature,
+and prepares a private compiler in LOCALAPPDATA\TuxSSTVInstallerTools.
+Later runs reuse it. You can supply an existing compiler with TUX_ISCC set
+to its full ISCC.exe path. No Qt/MSYS2 SDK is needed for installer-only work.
+Official compiler download: https://jrsoftware.org/inno-setup/downloads
+
+Run the resulting Tux-sstv-1.15.3-windows-x64-setup.exe on Windows to install.
+It adds Tux-sstv to the current user's Start menu with the Tux camera icon,
+offers an optional desktop shortcut and registers an uninstaller in Apps &
+features. No administrator rights are needed. Personal station profiles and
+saved images are kept when uninstalling. The installer is not code-signed.
+
+OPTIONAL HOSTED WINDOWS BUILD
+
+.github/workflows/windows.yml prepares a GitHub Actions Windows runner and
+uploads an installer, portable build and logs when manually run, or pushed to a branch
+named windows-port. This kit has not been published or uploaded to GitHub.
+Only a real successful Windows run can verify the Windows-specific code.
+
+RADIO AND AUDIO CHECKS BEFORE A RELEASE
+
+* Select SignaLink/radio USB input and output in Setup. Devices have persistent
+  Windows interface IDs; unplugged devices produce an error instead of silently
+  selecting another radio. Ambiguous/unmatched pairs use Advanced selections.
+* Set USB playback/input levels in Windows Sound settings. Hardware mixer
+  optimization is manual in this preview; the software TX level, RX limiter
+  and microphone level check remain available. Confirm the SignaLink PTT lamp.
+  The bundled emoji font supplies consistent flag and joined-emoji glyphs.
+* Allow desktop applications to use the microphone/camera in Windows privacy
+  settings. The webcam session uses video only and must preserve radio audio.
+* Choose the radio's COM port in Radio setup, including its PTT port if needed.
+  Startup must stay unkeyed. Test Connect/Disconnect, mode, VFO and frequency.
+* Test TX Stop, voice PTT unlock, device removal and connection loss. Confirm
+  the radio returns to RX each time. Use an appropriate radio test setup.
+* Receive successive images in Auto, including Scottie 2. Confirm a following
+  Morse ID appears and the next image starts normally after completion.
+* Pair a Windows laptop to the existing Linux shack. Check SSTV both ways,
+  listening/disconnect, voice/mic level checks, and safe PTT release.
+* Test the portable bundle on a Windows PC without MSYS2/Qt in PATH. This
+  catches missing DLL/plugin dependencies hidden by a development install.
+
+Data lives under Qt's Windows locations using the established OpenSSTV
+identity. Existing Linux paths/configuration are not copied to Windows.
+Review hardware-specific COM/audio settings when moving a radio profile.
+
+Reference implementations/documentation:
+https://learn.microsoft.com/en-us/windows/win32/api/mmeapi/nf-mmeapi-waveinopen
+https://learn.microsoft.com/en-us/windows/win32/api/mmeapi/nf-mmeapi-waveoutopen
+https://learn.microsoft.com/en-us/windows-hardware/drivers/audio/drv-querydeviceinterface
+https://doc.qt.io/qt-6/qmediacapturesession.html
+https://doc.qt.io/qt-6/windows-deployment.html
+https://github.com/Hamlib/Hamlib/releases/tag/4.7.2
+https://www.msys2.org/docs/ci/
+https://www.msys2.org/docs/windows_support/
+https://doc.qt.io/qt-6/windows.html
+
+Automatic bootstrap reference:
+https://www.msys2.org/docs/installer/
+https://github.com/msys2/msys2-installer/releases/tag/2026-11-20

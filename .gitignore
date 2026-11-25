@@ -8,3 +8,27 @@
 # Local files
 .DS_Store
 Thumbs.db
+
+# Tux-sstv source build exclusions
+# Build and release outputs
+**/build/
+**/build-*/
+**/dist/
+*.deb
+*.exe
+*.msi
+*.zip
+*.partial
+
+# Local settings, credentials, and caches
+.env
+.env.*
+*.pem
+*.key
+*.log
+**/.codex/
+**/.venv/
+**/__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db

@@ -1,0 +1,6 @@
+/build*/
+/captures/
+/dist/
+/installer-logs/
+*.wav
+*.user

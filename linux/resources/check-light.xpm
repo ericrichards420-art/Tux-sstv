@@ -1,0 +1,17 @@
+/* XPM */
+static const char *check_light[] = {
+"12 12 2 1",
+"  c None",
+"x c #ffffff",
+"            ",
+"            ",
+"         xx ",
+"        xxx ",
+"       xxx  ",
+" xx   xxx   ",
+" xxx xxx    ",
+"  xxxxx     ",
+"   xxx      ",
+"    x       ",
+"            ",
+"            "};

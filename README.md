@@ -54,3 +54,25 @@ Select **SignaLink USB** in audio setup and choose its sound device, often named
 Use the [Issues page](https://github.com/ericrichards420-art/Tux-sstv/issues) to report a problem. Include your Tux-sstv version, operating system and version, radio model, audio interface, and what happened.
 
 Created and developed by **Eric Richards, KI5BZO**.
+
+<!-- TUX-SSTV-SOURCE-BEGIN -->
+## Source code and compatibility builds
+
+The current platform source snapshots are available here:
+
+- [Linux 1.14.3 source](linux/)
+- [Windows 1.15.3 source](windows/)
+- [Build instructions](BUILDING.md)
+- [Project license](LICENSE.md)
+
+Original project developer: **Eric Richards, KI5BZO**.
+
+The source is provided for **personal compilation and compatibility adjustments
+for Linux and Windows only**. Redistributing source or compiled builds requires
+Eric Richards's separate written permission. Preserve the original project
+credit and applicable third-party notices. See the license for the precise
+permissions and conditions.
+
+For improvement proposals or other permissions, contact
+**ericrichards420@gmail.com**. See [CONTRIBUTING.md](CONTRIBUTING.md).
+<!-- TUX-SSTV-SOURCE-END -->

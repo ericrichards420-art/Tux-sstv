@@ -1,0 +1,26 @@
+Tux-sstv 1.15.3 for Windows
+Developed by Eric Richards - KI5BZO
+
+Open Tux-sstv from the Windows Start menu. If you selected the optional
+desktop shortcut during setup, you can also open it from your desktop.
+
+Use the Setup Wizard to select audio devices, configure CAT/PTT and set up
+remote operation. The program keeps station profiles, received pictures and
+other personal data separately from its installed application files.
+
+This installer includes the complete Windows program, USB audio helper,
+Hamlib radio tools, Qt plugins, built-in pictures, emoji font and licenses.
+You do not need to install a compiler, Qt or MSYS2 to run the program.
+
+The preceding Windows 1.15.0 program passed all four native Windows test
+suites. Eric confirmed successful SSTV transmission and reception over the
+air using that build. Version 1.15.3 makes separate audio and CAT cable setup explicit for any
+compatible radio. See docs/SEPARATE_CAT.md for setup steps. The automatic source build runs the Windows
+test suites before producing its installer.
+
+To remove the program, open Windows Settings > Apps > Apps & features,
+select Tux-sstv and choose Uninstall. Personal station profiles and saved
+images are kept. Install a newer Tux-sstv setup EXE to update the program.
+
+Keep third-party notices and licenses with any redistributed program copy.
+Application and dependency notices are included in docs and licenses.

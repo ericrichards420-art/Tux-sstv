@@ -1,0 +1,14 @@
+<RCC>
+  <qresource prefix="/branding">
+    <file>tux.svg</file>
+    <file alias="tux-sstv.svg">opensstv.svg</file>
+  </qresource>
+  <qresource prefix="/skins">
+    <file>check-light.xpm</file>
+    <file>check-dark.xpm</file>
+    <file>arrow-up-light.xpm</file>
+    <file>arrow-down-light.xpm</file>
+    <file>arrow-up-dark.xpm</file>
+    <file>arrow-down-dark.xpm</file>
+  </qresource>
+</RCC>

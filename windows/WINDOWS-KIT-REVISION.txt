@@ -1,0 +1,16 @@
+Tux-sstv 1.15.3 Windows development kit
+Revision: 2026-11-24 complete emoji picker glyphs and image word spacing
+
+The emoji picker measures the painted glyph bounds on its actual device,
+centers them with padding and scales down only when needed. Color glyphs
+fit at different display scales and with oversized font metrics.
+
+Caption text uses normal text fonts with the OS general font as fallback.
+Only emoji spans use the bundled color font. Template fields also have an
+explicit system-text-font fallback. Typed word spaces, repeated spaces and
+line breaks remain plain text in the caption and composed image.
+
+Separate audio interface plus CAT cable setup remains included.
+This is a complete source kit. Extract it on Windows and run
+Install and Build Tux-sstv.cmd to build/test version 1.15.3 and produce its
+Setup.exe installer with the Start menu icon. Existing tools are reused.
