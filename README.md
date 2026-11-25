@@ -39,6 +39,20 @@ APT installs the required dependencies. Open **Tux-sstv** from the application m
 - Remote shack operation over Wi-Fi, with radio audio and microphone support.
 - Radio profiles for saving different station configurations.
 
+<!-- TUX-SSTV-SCREENSHOTS-BEGIN -->
+## Screenshots
+
+Linux interface shown below. Click a picture to view it at full size.
+
+| Receive an SSTV image | Prepare a picture to transmit |
+| --- | --- |
+| [![Tux-sstv receiving an image over the air, with automatic mode detection, waterfall, and receive history](docs/screenshots/receive-over-the-air.png)](docs/screenshots/receive-over-the-air.png) | [![Tux-sstv transmit preview with Scottie 2 selected, a callsign overlay, and the built-in Tux picture gallery](docs/screenshots/transmit-and-tux-gallery.png)](docs/screenshots/transmit-and-tux-gallery.png) |
+| **Radio controls** | **Guided station setup** |
+| [![Tux-sstv Radio tab with frequency, VFO, mode, audio, microphone, and PTT controls, shown disconnected](docs/screenshots/radio-console.png)](docs/screenshots/radio-console.png) | [![Tux-sstv setup wizard explaining audio interfaces, SignaLink USB, built-in USB audio, and separate CAT cables](docs/screenshots/setup-wizard.png)](docs/screenshots/setup-wizard.png) |
+
+[Screenshot details](docs/screenshots/README.md)
+<!-- TUX-SSTV-SCREENSHOTS-END -->
+
 ## Latest updates: Windows 1.15.3 / Linux 1.14.3
 
 - Improves emoji picker sizing so complete emoji fit inside their cells.
