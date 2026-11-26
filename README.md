@@ -4,13 +4,12 @@ Send and receive slow-scan television pictures over amateur radio with Tux-sstv,
 
 ## Downloads
 
-Linux **1.15.0** includes the new guided setup wizard. The Windows **1.16.0**
-installer is being built and tested in [GitHub Actions](https://github.com/ericrichards420-art/Tux-sstv/actions/runs/45907199013);
-Windows **1.15.3** remains available below until that build passes.
+The current Linux and Windows releases include the new guided setup wizard.
+Both packages passed their [native platform builds and tests](https://github.com/ericrichards420-art/Tux-sstv/actions/runs/45907199013).
 
 | Platform | Version | Download |
 | --- | --- | --- |
-| Windows 10 (1809+) / Windows 11, 64-bit | 1.15.3 | [Download Windows installer](https://github.com/ericrichards420-art/Tux-sstv/releases/download/v1.15.3/Tux-sstv-1.15.3-windows-x64-setup.exe) |
+| Windows 10 (1809+) / Windows 11, 64-bit | 1.16.0 | [Download Windows installer](https://github.com/ericrichards420-art/Tux-sstv/releases/download/v1.16.0/Tux-sstv-1.16.0-windows-x64-setup.exe) |
 | Ubuntu 26.04, 64-bit Intel/AMD | 1.15.0 | [Download Linux .deb](https://github.com/ericrichards420-art/Tux-sstv/releases/download/linux-v1.15.0/tux-sstv_1.15.0-1.ubuntu26.04_amd64.deb) |
 
 ### Windows installation
@@ -92,6 +91,8 @@ The current platform source snapshots are available here:
 
 - [Linux 1.15.0 source](linux/)
 - [Windows 1.16.0 source](windows/)
+- [Linux source ZIP](https://github.com/ericrichards420-art/Tux-sstv/releases/download/linux-v1.15.0/Tux-sstv-1.15.0-Linux-source.zip)
+- [Windows source and one-click build kit](https://github.com/ericrichards420-art/Tux-sstv/releases/download/v1.16.0/tux-sstv-windows.zip)
 - [Build instructions](BUILDING.md)
 - [Project license](LICENSE.md)
 
