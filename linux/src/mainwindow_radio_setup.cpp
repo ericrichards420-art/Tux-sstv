@@ -37,13 +37,13 @@ void MainWindow::showRadioSetup(){
     auto* layout=new QVBoxLayout(&dialog);auto* hint=new QLabel;hint->setObjectName("radioSetupLocation");hint->setWordWrap(true);
     hint->setText(remote?(available?"These are the shack PC's Hamlib settings. Save updates the shack radio connection; your laptop's local radio settings stay separate.":"Connect to a shack running Tux-sstv or OpenSSTV 1.3.2 or newer to view and change its Hamlib setup. Your laptop's local radio settings are preserved."):"Configure Hamlib here while the laptop remains paired. Save closes the current CAT connection; use Radio → Connect afterward.");layout->addWidget(hint);
     if(remote){auto* local=new QPushButton("Set up a USB radio connected to this computer…");local->setObjectName("radioSetupUseLocal");layout->addWidget(local);connect(local,&QPushButton::clicked,&dialog,[this,&dialog]{dialog.reject();QTimer::singleShot(0,this,[this]{useLocalSetup(false);});});}
-    auto* page=new RadioSettingsPage(original,radio_);auto* scroll=new QScrollArea;scroll->setWidgetResizable(true);scroll->setWidget(page);layout->addWidget(scroll,1);page->setEnabled(available);scroll->setVisible(available);
+    auto* page=new RadioSettingsPage(original,radio_);page->setAudioConnection(remote?snapshot.value("audioConnection").toString():QSettings().value("audio/setupConnection","other").toString());auto* scroll=new QScrollArea;scroll->setWidgetResizable(true);scroll->setWidget(page);layout->addWidget(scroll,1);page->setEnabled(available);scroll->setVisible(available);
     if(remote){QStringList devices;for(const auto& value:snapshot.value("radioDevices").toArray())if(value.isString())devices<<value.toString();page->setDeviceChoices(devices);auto* check=page->findChild<QPushButton*>("radioCheckConnection");check->setEnabled(false);check->setToolTip("Save the shack setup, then use Radio → Connect. Connection checks never request PTT.");}
     auto* error=new QLabel;error->setObjectName("radioSetupError");error->setWordWrap(true);layout->addWidget(error);
     auto* buttons=new QDialogButtonBox(QDialogButtonBox::Save|QDialogButtonBox::Cancel);layout->addWidget(buttons);
     bool saving=false,changed=false;
     const auto validate=[&]{
-        QString problem;const auto config=page->config();if(config.enabled)problem=config.validate();
+        QString problem;const auto config=page->config();if(config.enabled)problem=page->validationError();
         const bool online=!remote||(remoteClient_->connected()&&remoteClient_->snapshot().value("radioConfig").isObject());
         const bool occupied=remote?(remoteClient_->snapshot().value("transmitting").toBool()||remoteClient_->snapshot().value("preparing").toBool()):!radioSetupError().isEmpty();
         buttons->button(QDialogButtonBox::Save)->setEnabled(available&&online&&!saving&&!occupied&&problem.isEmpty());

@@ -1,15 +1,26 @@
-Tux-sstv Windows port - 1.15.3 development preview
+Tux-sstv Windows build kit - 1.16.0
 Developed by Eric Richards - KI5BZO
 
 This source kit builds the Windows program, portable ZIP and Setup.exe.
-The Windows 1.15.0 program has passed all four native Windows test suites.
-Eric has also confirmed sending and receiving SSTV images over the air on
-Windows. The original Linux 1.14.0 program remains separate.
+Run Install and Build Tux-sstv.cmd to compile the new version and its installer.
+Make Windows Installer.cmd packages an already completed build; it does not
+compile the new program. Read docs/SETUP_GUIDE.md for the rebuilt wizard.
 
-Make Windows Installer.cmd can package a completed build without rebuilding
-it. To get the new SignaLink UI, first run Install and Build Tux-sstv.cmd
-from this source kit. The separate Installer Maker ZIP still contains the
-previously tested 1.15.0 program.
+GUIDED RADIO SETUP
+
+Choose a connection preset, then choose how transmission starts. Radio USB/CAT,
+SignaLink with separate CAT, FlexRadio SmartSDR CAT virtual COM, direct SmartSDR
+networking, and rigctld have distinct choices. Flex DAX exposes separate RX/TX
+audio selectors. A CAT cable choice does not disable automatic PTT.
+The review page shows the actual keying setup, provides a connection check,
+and offers an optional one-second PTT test. Closing the wizard or going Back
+ends its own active test. Existing radio profiles keep their saved settings.
+
+Validation note: this wizard was compiled and tested on the Linux host in
+both platform source trees. The new Windows installer still needs its normal
+native Windows build and tests. Earlier Windows releases were successfully
+used by Eric to send and receive images over the air; that does not constitute
+a hardware test of FlexRadio or this new Windows build.
 
 EMOJI PICKER AND IMAGE TEXT SPACING
 
@@ -21,7 +32,7 @@ full build to get the updated program and installer.
 SIGNALINK OR OTHER AUDIO INTERFACE + SEPARATE CAT CABLE
 
 Keep your working sound device selected in the audio step. In the CAT step,
-click Use audio interface + separate CAT cable. Choose your radio model,
+choose SignaLink USB with a separate CAT cable under Connection setup. Choose your radio model,
 select the CAT cable's COM port and match the CAT baud rate to the radio.
 Refresh ports reloads local serial ports and keeps your current selection.
 Next saves CAT settings without changing the sound devices. Finish, then

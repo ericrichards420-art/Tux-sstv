@@ -204,6 +204,22 @@ else: raise RuntimeError(args)
         QCOMPARE(wizard.inputDevice(),QString("plughw:CARD=USB,DEV=0"));QCOMPARE(wizard.outputDevice(),wizard.inputDevice());
         QVERIFY(!QFile::exists(directory_.filePath("captured")));QVERIFY(!QFile::exists(directory_.filePath("played")));wizard.reject();
     }
+    void flexDaxUsesSeparateFriendlyDevicesAndDoesNotGuessTheRxSlice(){
+        listing("arecord-list","winmm:7\n    DAX Audio RX 1 (DAX RX Audio)\nwinmm:8\n    DAX Audio RX 2 (DAX RX Audio)\n");
+        listing("aplay-list","winmm:3\n    DAX Audio TX (DAX TX Audio)\n");
+        AudioWizard wizard("default","default");wizard.show();auto* profile=wizard.findChild<QComboBox*>("wizardConnection");profile->setCurrentIndex(profile->findData("flex-dax"));
+        QTRY_VERIFY(wizard.findChild<QPushButton*>("wizardRefresh")->isEnabled());
+        QVERIFY(wizard.findChild<QCheckBox*>("wizardAdvanced")->isChecked());QVERIFY(wizard.findChild<QCheckBox*>("wizardAdvanced")->isHidden());QVERIFY(wizard.findChild<QWidget*>("wizardAdvancedDevices")->isVisible());
+        QCOMPARE(wizard.inputDevice(),QString("default"));QCOMPARE(wizard.outputDevice(),QString("winmm:3"));wizard.next();QCOMPARE(wizard.currentId(),0);QVERIFY(wizard.findChild<QLabel*>("wizardDiscoveryStatus")->text().contains("Choose both"));
+        auto* input=wizard.findChild<QComboBox*>("wizardInput");input->setCurrentIndex(input->findData("winmm:8"));QVERIFY(input->currentText().contains("DAX Audio RX 2"));QCOMPARE(wizard.inputDevice(),QString("winmm:8"));wizard.next();QCOMPARE(wizard.currentId(),1);QVERIFY(!wizard.useInterfacePtt());wizard.reject();
+    }
+    void flexDaxRelayKeepsActualDeviceIds(){
+        listing("arecord-list","winmm:7\n    DAX Audio RX 1 (DAX RX Audio)\n");listing("aplay-list","winmm:3\n    DAX Audio TX (DAX TX Audio)\n");
+        AudioWizard host("default","default");host.show();QTRY_VERIFY(host.findChild<QPushButton*>("wizardRefresh")->isEnabled());auto* connection=host.findChild<QComboBox*>("wizardConnection");connection->setCurrentIndex(connection->findData("flex-dax"));
+        AudioWizard client({}, {},nullptr,true);client.applyRelayState(host.relayState());QCOMPARE(client.connectionType(),QString("flex-dax"));QCOMPARE(client.inputDevice(),QString("winmm:7"));QCOMPARE(client.outputDevice(),QString("winmm:3"));host.next();client.applyRelayState(host.relayState());QCOMPARE(client.currentId(),1);
+        QVERIFY(host.relayOperation("edit",{{"name","wizardInput"},{"value","winmm:7"}}).isEmpty());QCOMPARE(host.inputDevice(),QString("winmm:7"));host.reject();client.finishRelay(QDialog::Rejected);
+        AudioWizard saved("winmm:7","winmm:3");saved.show();QTRY_VERIFY(saved.findChild<QPushButton*>("wizardRefresh")->isEnabled());QVERIFY(saved.findChild<QComboBox*>("wizardInput")->currentText().contains("DAX Audio RX 1"));QCOMPARE(saved.inputDevice(),QString("winmm:7"));saved.reject();
+    }
     void builtInUsbAudioAndSavedChoices(){
         AudioWizard wizard("plughw:CARD=IC7300,DEV=0","plughw:CARD=IC7300,DEV=0");wizard.show();QTRY_VERIFY(wizard.findChild<QPushButton*>("wizardRefresh")->isEnabled());auto* choices=wizard.findChild<QComboBox*>("wizardDevice");QVERIFY(choices->currentText().contains("IC-7300"));QVERIFY(!wizard.findChild<QCheckBox*>("wizardAdvanced")->isChecked());
         auto* profile=wizard.findChild<QComboBox*>("wizardConnection");profile->setCurrentIndex(profile->findData("radio-usb"));QVERIFY(wizard.findChild<QLabel*>("wizardConnectionHelp")->text().contains("CAT"));QVERIFY(!wizard.useInterfacePtt());QCOMPARE(wizard.inputDevice(),QString("plughw:CARD=IC7300,DEV=0"));wizard.next();wizard.next();QVERIFY(wizard.findChild<QLabel*>("wizardTransmitHelp")->text().contains("transmit-audio source"));wizard.next();QVERIFY(!wizard.findChild<QCheckBox*>("wizardInterfacePtt")->isVisible());wizard.reject();

@@ -17,7 +17,7 @@ void writeActiveSettings(QSettings& s,const profiles::Settings& p){
 }
 profiles::Settings MainWindow::currentProfileSettings() const{
     profiles::Settings p;p.radio=radioConfig_;p.input=inputDevice_->text().trimmed();p.output=outputDevice_->text().trimmed();if(p.input.isEmpty())p.input="default";if(p.output.isEmpty())p.output="default";
-    QSettings s(profileSettingsFile_,profileSettingsFormat_);p.connection=s.value("audio/setupConnection","other").toString();if(!QStringList{"other","usb","signalink","radio-usb"}.contains(p.connection))p.connection="other";
+    QSettings s(profileSettingsFile_,profileSettingsFormat_);p.connection=s.value("audio/setupConnection","other").toString();if(!QStringList{"other","usb","signalink","radio-usb","flex-dax"}.contains(p.connection))p.connection="other";
     p.txLevel=remoteClientMode()?std::clamp(s.value("audio/txLevelPercent",100).toInt(),0,100):audioLevels_->transmitPercent();p.rxGain=audioLevels_->receiveGainDb();p.autoRx=audioLevels_->automaticReceiveLevel();
     p.autoClock=autoClock_->isChecked();p.autoFrequency=autoFrequency_->isChecked();p.clockPpm=clock_->value();p.offsetHz=offset_->value();return p;
 }

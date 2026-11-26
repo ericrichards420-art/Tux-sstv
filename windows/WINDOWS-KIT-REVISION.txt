@@ -1,5 +1,10 @@
-Tux-sstv 1.15.3 Windows development kit
-Revision: 2026-11-24 complete emoji picker glyphs and image word spacing
+Tux-sstv 1.16.0 Windows development kit
+Revision: 2026-11-26 guided radio setup, Flex DAX, and explicit PTT selection
+
+New guided connection presets and separate transmit-keying choices remove the
+ambiguous audio-plus-CAT shortcut. Flex DAX uses separate friendly RX/TX device
+selectors. The review page provides a connection check and an optional owned,
+bounded one-second PTT test. See docs/SETUP_GUIDE.md.
 
 The emoji picker measures the painted glyph bounds on its actual device,
 centers them with padding and scales down only when needed. Color glyphs

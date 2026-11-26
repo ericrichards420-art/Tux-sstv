@@ -7,8 +7,8 @@ The two directories preserve the current platform releases:
 
 | Directory | Application version | Existing package target |
 | --- | --- | --- |
-| `linux/` | 1.14.3 | Ubuntu 26.04, amd64 |
-| `windows/` | 1.15.3 | Windows 10 1809+ or Windows 11, x64 |
+| `linux/` | 1.15.0 | Ubuntu 26.04, amd64 |
+| `windows/` | 1.16.0 | Windows 10 1809+ or Windows 11, x64 |
 
 Read [LICENSE.md](LICENSE.md) before making a compatibility build. The source
 permission is for personal use only; redistribution requires Eric's separate
@@ -72,3 +72,14 @@ included tests and check audio-device selection, repeated SSTV reception,
 transmission cancellation, CAT/PTT, and the remote functions with your intended
 hardware. Report your OS, architecture, toolchain, dependency versions, and
 compatibility changes when contacting Eric about a port.
+
+## Automated release builds
+
+The repository workflow builds Linux on Ubuntu 26.04 and Windows with native
+MSYS2 UCRT64 tools. Packages are uploaded to a draft release, checked against
+SHA-256 digests, then published after the platform build and its tests pass.
+The previous release remains available if a build fails.
+
+See [the Linux setup guide](linux/docs/SETUP_GUIDE.md) or
+[the Windows setup guide](windows/docs/SETUP_GUIDE.md) for the new radio presets.
+Hardware and on-air checks remain separate from automated build validation.

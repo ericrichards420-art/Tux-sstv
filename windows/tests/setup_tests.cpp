@@ -3,14 +3,14 @@
 #include <QtWidgets>
 #include <QtTest>
 
-struct SetupRadioState {radio::Config opened;bool keyed=false;};
+struct SetupRadioState {radio::Config opened;bool keyed=false;int keyRequests=0;};
 class SetupRadio final:public radio::Backend {
     std::shared_ptr<SetupRadioState> state_;
 public:
     explicit SetupRadio(std::shared_ptr<SetupRadioState> state):state_(std::move(state)){}
     void open(const radio::Config& config) override {state_->opened=config;}
     QVariantMap read(bool=false) override {return {{"ptt",state_->keyed?1:0}};}
-    void setPtt(bool on) override {state_->keyed=on;}
+    void setPtt(bool on) override {state_->keyed=on;if(on)++state_->keyRequests;}
     void apply(const radio::Command&) override {}
     QString close() override {state_->keyed=false;return {};}
 };
@@ -38,6 +38,30 @@ private slots:
             file.write("#!/bin/sh\nexit 0\n");file.close();
             QVERIFY(file.setPermissions(QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner));
         }
+    }
+    void summaryDoesNotClaimAutomaticPttWithDisabledRadio(){
+        profile("local");QSettings settings;settings.setValue("radio/enabled",false);settings.setValue("radio/automaticPtt",true);MainWindow window;bool seen=false;
+        QTimer::singleShot(0,&window,[&]{auto* wizard=setup(window);QVERIFY(wizard);wizard->next();wizard->next();wizard->next();QCOMPARE(wizard->currentId(),3);const auto text=wizard->findChild<QLabel*>("setupSummary")->text();QVERIFY(text.contains("computer radio control is disabled"));QVERIFY(!wizard->findChild<QPushButton*>("setupPttTest")->isEnabled());seen=true;wizard->reject();});open(window);QVERIFY(seen);window.close();
+    }
+    void guidedPttTestReleasesOnLeavingReview_data(){QTest::addColumn<bool>("goBack");QTest::newRow("close wizard")<<false;QTest::newRow("back to settings")<<true;}
+    void guidedPttTestReleasesOnLeavingReview(){
+        QFETCH(bool,goBack);profile("local");QSettings settings;settings.setValue("radio/enabled",true);settings.setValue("radio/automaticPtt",true);auto state=std::make_shared<SetupRadioState>();MainWindow window(nullptr,std::make_unique<SetupRadio>(state));
+        int stage=0;bool seen=false;QTimer drive;drive.setInterval(10);
+        connect(&drive,&QTimer::timeout,&window,[&]{auto* wizard=setup(window);if(!wizard)return;
+            if(stage==0){stage=1;wizard->next();wizard->next();wizard->next();QCOMPARE(wizard->currentId(),3);QCOMPARE(state->keyRequests,0);wizard->findChild<QPushButton*>("setupConnectRadio")->click();return;}
+            if(stage==1&&wizard->findChild<QPushButton*>("setupPttTest")->isEnabled()){stage=2;QCOMPARE(state->keyRequests,0);wizard->findChild<QPushButton*>("setupPttTest")->click();return;}
+            if(stage==2&&state->keyed){seen=true;drive.stop();if(goBack){wizard->back();QCOMPARE(wizard->currentId(),2);QTRY_VERIFY_WITH_TIMEOUT(!state->keyed,300);}wizard->reject();}
+        });drive.start();QTimer::singleShot(7000,&window,[&]{if(auto* wizard=setup(window))wizard->reject();});open(window);QVERIFY(seen);QTRY_VERIFY(!state->keyed);QCOMPARE(state->keyRequests,1);window.close();
+    }
+    void reviewPttTestCompletesAndReturnsToReceive(){
+        profile("local");QSettings settings;settings.setValue("radio/enabled",true);settings.setValue("radio/automaticPtt",true);auto state=std::make_shared<SetupRadioState>();MainWindow window(nullptr,std::make_unique<SetupRadio>(state));
+        int stage=0;bool complete=false;QTimer drive;drive.setInterval(10);
+        connect(&drive,&QTimer::timeout,&window,[&]{auto* wizard=setup(window);if(!wizard)return;
+            if(stage==0){stage=1;wizard->next();wizard->next();wizard->next();QCOMPARE(state->keyRequests,0);wizard->findChild<QPushButton*>("setupConnectRadio")->click();return;}
+            if(stage==1&&wizard->findChild<QPushButton*>("setupPttTest")->isEnabled()){stage=2;wizard->findChild<QPushButton*>("setupPttTest")->click();return;}
+            if(stage==2&&state->keyed){stage=3;return;}
+            if(stage==3&&!state->keyed&&wizard->findChild<QLabel*>("setupCheckStatus")->text().contains("PTT commands completed")){complete=true;drive.stop();wizard->reject();}
+        });drive.start();QTimer::singleShot(6000,&window,[&]{if(auto* wizard=setup(window))wizard->reject();});open(window);QVERIFY(complete);QCOMPARE(state->keyRequests,1);QVERIFY(!state->keyed);window.close();
     }
     void cancelBeforeNextPreservesAllSettings(){
         profile("local",2039);QSettings settings;settings.setValue("remote/key",key_);settings.sync();
@@ -80,7 +104,7 @@ private slots:
         int stage=0;bool finished=false;QTimer drive;drive.setInterval(10);
         connect(&drive,&QTimer::timeout,&window,[&]{auto* wizard=setup(window);if(!wizard)return;
             if(stage==0){stage=1;wizard->next();wizard->next();QCOMPARE(wizard->currentId(),2);
-                wizard->findChild<QPushButton*>("radioSeparateCat")->click();QVERIFY(wizard->findChild<QCheckBox*>("radioEnabled")->isChecked());QVERIFY(!wizard->findChild<QCheckBox*>("radioAutoPtt")->isChecked());
+                wizard->findChild<QComboBox*>("radioSetupPreset")->setCurrentIndex(wizard->findChild<QComboBox*>("radioSetupPreset")->findData("signalink"));QVERIFY(wizard->findChild<QCheckBox*>("radioEnabled")->isChecked());QVERIFY(!wizard->findChild<QCheckBox*>("radioAutoPtt")->isChecked());
                 QCOMPARE(wizard->findChild<QComboBox*>("radioModel")->currentData().toInt(),model);
                 wizard->findChild<QComboBox*>("radioDevice")->setEditText("COM27");wizard->findChild<QComboBox*>("radioBaud")->setCurrentIndex(wizard->findChild<QComboBox*>("radioBaud")->findData(9600));wizard->next();return;}
             if(stage==1&&wizard->currentId()==3){drive.stop();const auto text=wizard->findChild<QLabel*>("setupSummary")->text();QVERIFY(text.contains("signalink-input"));QVERIFY(text.contains("signalink-output"));QVERIFY(text.contains("COM27"));QVERIFY(text.contains("CAT remains independent"));finished=true;wizard->accept();}
@@ -93,7 +117,7 @@ private slots:
     }
     void separateCatShortcutCancelKeepsSavedSettings(){
         profile("signalink",1022);QSettings settings;settings.setValue("audio/setupConnection","signalink");const auto before=radio::Config::load(settings);MainWindow window;bool seen=false;
-        QTimer::singleShot(0,&window,[&]{auto* wizard=setup(window);QVERIFY(wizard);const auto close=qScopeGuard([wizard]{wizard->reject();});wizard->next();wizard->next();wizard->findChild<QPushButton*>("radioSeparateCat")->click();wizard->findChild<QComboBox*>("radioDevice")->setEditText("COM42");seen=true;});open(window);QVERIFY(seen);
+        QTimer::singleShot(0,&window,[&]{auto* wizard=setup(window);QVERIFY(wizard);const auto close=qScopeGuard([wizard]{wizard->reject();});wizard->next();wizard->next();wizard->findChild<QComboBox*>("radioSetupPreset")->setCurrentIndex(wizard->findChild<QComboBox*>("radioSetupPreset")->findData("signalink"));wizard->findChild<QComboBox*>("radioDevice")->setEditText("COM42");seen=true;});open(window);QVERIFY(seen);
         QVERIFY(radio::Config::load(settings)==before);QCOMPARE(settings.value("audio/input").toString(),QString("signalink-input"));QCOMPARE(settings.value("audio/output").toString(),QString("signalink-output"));window.close();
     }
     void invalidCatStaysOnCatStep(){

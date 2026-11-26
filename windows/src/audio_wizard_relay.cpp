@@ -70,7 +70,7 @@ QString AudioWizard::relayOperation(const QString& operation,const QJsonObject& 
         const auto value=args.value("value");
         if(auto* combo=findChild<QComboBox*>(name)){
             if(!combo->isEnabled())return "Wait for the current audio operation to finish.";
-            if(combo->isEditable()){if(!value.isString()||value.toString().size()>500)return "Invalid audio device name.";combo->setCurrentText(value.toString());}
+            if(combo->isEditable()){if(!value.isString()||value.toString().size()>500)return "Invalid audio device name.";const int index=combo->findData(value.toString());const int textIndex=combo->findText(value.toString());if(index>=0)combo->setCurrentIndex(index);else if(textIndex>=0)combo->setCurrentIndex(textIndex);else combo->setCurrentText(value.toString());}
             else {const auto n=value.toDouble(-1);if(!value.isDouble()||!std::isfinite(n)||n<0||n>=combo->count()||n!=int(n))return "Invalid audio device choice.";combo->setCurrentIndex(int(n));}return {};
         }
         if(auto* box=findChild<QCheckBox*>(name)){if(!value.isBool())return "Invalid audio option.";box->setChecked(value.toBool());return {};}

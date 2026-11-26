@@ -9,7 +9,7 @@ The two connections keep their own device settings in the radio profile.
 2. In the audio step, keep **SignaLink USB** selected as the audio interface
    and choose its **USB Audio CODEC** sound device. Finish the audio check.
    If audio already works, continue without changing the saved sound devices.
-3. In the CAT step, click **Use audio interface + separate CAT cable**.
+3. In the CAT step, choose **SignaLink USB with a separate CAT cable** under **Connection setup**.
    This enables CAT radio control and leaves transmit keying to SignaLink
    or the audio interface. It keeps the selected radio model, port and baud.
 4. Choose the correct **Radio model**, select the cable's **CAT port / device**
@@ -20,11 +20,11 @@ The two connections keep their own device settings in the radio profile.
 5. Save with **Next**, review both audio devices and the CAT port, then Finish.
    Use **Radio > Connect** to open CAT. This keeps the audio devices selected.
 
-The combined-connection shortcut chooses the audio-interface/manual PTT
+The explicit SignaLink connection preset chooses the audio-interface/manual PTT
 method and turns off automatic CAT PTT. CAT frequency and mode controls stay
 enabled. It does not play audio, connect automatically or request PTT.
 Use the normal sound-interface transmit test to check audio-operated keying.
-If another setup needs CAT or serial PTT, choose that PTT method explicitly.
+For built-in USB audio or another interface that needs computer PTT, choose the **Radio USB or serial CAT cable** preset, then select **Start transmission with**. See [the guided setup instructions](SETUP_GUIDE.md) for FlexRadio, separate RTS/DTR PTT ports, and connection checks.
 
 ## Example: Yaesu FT-857D
 

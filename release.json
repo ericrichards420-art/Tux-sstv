@@ -1,0 +1,18 @@
+{
+  "linux": {
+    "version": "1.15.0",
+    "tag": "linux-v1.15.0",
+    "title": "Tux-sstv 1.15.0 for Ubuntu 26.04 — guided radio setup",
+    "patterns": ["tux-sstv_1.15.0-1~ubuntu26.04_amd64.deb"],
+    "source_archive": "Tux-sstv-1.15.0-Linux-source.zip",
+    "latest": false
+  },
+  "windows": {
+    "version": "1.16.0",
+    "tag": "v1.16.0",
+    "title": "Tux-sstv 1.16.0 for Windows — guided radio setup",
+    "patterns": ["Tux-sstv-1.16.0-windows-x64-setup.exe", "Tux-sstv-1.16.0-windows-x64-preview.zip"],
+    "source_archive": "tux-sstv-windows.zip",
+    "latest": true
+  }
+}

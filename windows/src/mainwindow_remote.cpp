@@ -188,7 +188,7 @@ void MainWindow::publishRemoteState(){
         {"audioWizard",true},{"audioSetupError",audioWizardRestoreError_.left(1500)},{"radioConfig",radioConfig_.toJson()},{"radioDevices",QJsonArray::fromStringList(devices)},{"radioConnected",radio_->connected()},{"radioError",radio_->error()},{"radioPttActive",radio_->pttActive()},{"radioPttActivation",QString::number(remoteServer_->session())+":"+QString::number(radio_->pttGeneration())},{"radio",QJsonObject::fromVariantMap(radio_->state())},
         {"voice",voiceHostActive_},{"transmitting",playing||radio_->pttActive()},{"preparing",profileApplying_||txPreparing_||radioSetupBusy_||audioSetupBusy_||micCheckActive_},{"transmitOrigin",localSharedTx_?"shack":remoteHostTx_||remoteServer_->remoteTransmitBusy()?"laptop":""},{"txDurationMs",double(txDurationMs_)},
         {"receiving",backgroundReceiving_&&capture_.state()==QProcess::Running},{"receiveError",receiveError_},
-        {"input",inputDevice_->text()},{"output",outputDevice_->text()}});
+        {"input",inputDevice_->text()},{"output",outputDevice_->text()},{"audioConnection",QSettings().value("audio/setupConnection","other").toString()}});
 }
 void MainWindow::updateRemoteStatus(){
     if(!remoteStatus_)return;

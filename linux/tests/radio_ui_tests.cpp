@@ -47,6 +47,29 @@ time.sleep(30 if device == 'hung' else seconds if os.environ.get('OPENSSTV_RADIO
 )");player.close();QVERIFY(player.setPermissions(QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner));
     }
     void init(){configure();QFile::remove(audioCopy_);QSettings s;s.setValue("pictures/stock",QStringList{directory_.filePath("solid.png")});}
+    void guidedFlexSetupRestoresAutomaticPttAndKeepsAudioIndependent(){
+        radio::Config config;config.model=1022;config.device="COM18";config.baud=9600;config.automaticPtt=false;config.pttType="None";
+        auto state=std::make_shared<FakeRadioState>();radio::Controller controller(nullptr,std::make_unique<FakeRadio>(state));RadioSettingsPage page(config,&controller);page.setAudioConnection("flex-dax");
+        auto* preset=page.findChild<QComboBox*>("radioSetupPreset");preset->setCurrentIndex(preset->findData("flex-cat"));
+        auto c=page.config();QVERIFY(c.enabled);QVERIFY(!c.network);QVERIFY(c.automaticPtt);QCOMPARE(c.model,2014);QCOMPARE(c.device,QString("COM18"));QCOMPARE(c.pttType,QString("RIG"));QCOMPARE(c.pttValue,1);QVERIFY(page.validationError().isEmpty());
+        auto* keying=page.findChild<QComboBox*>("radioKeyingChoice");keying->setCurrentIndex(keying->findData("rts"));QVERIFY(page.validationError().contains("separate PTT"));
+        page.findChild<QLineEdit*>("radioPttDevice")->setText("COM18");QVERIFY(!page.validationError().isEmpty());page.findChild<QLineEdit*>("radioPttDevice")->setText("COM19");QVERIFY(page.validationError().isEmpty());QCOMPARE(page.config().pttType,QString("RTS"));
+        preset->setCurrentIndex(preset->findData("cat"));QVERIFY(page.config().automaticPtt);QCOMPARE(page.config().pttType,QString("RIG"));
+        preset->setCurrentIndex(preset->findData("signalink"));QVERIFY(!page.config().automaticPtt);QCOMPARE(page.config().pttType,QString("None"));
+        QVERIFY(!controller.connected());QVERIFY(state->history().isEmpty());
+    }
+    void directFlexAndRigctldUseDifferentProtocols(){
+        radio::Config config;config.device="COM12";auto state=std::make_shared<FakeRadioState>();radio::Controller controller(nullptr,std::make_unique<FakeRadio>(state));RadioSettingsPage page(config,&controller);
+        auto* preset=page.findChild<QComboBox*>("radioSetupPreset");preset->setCurrentIndex(preset->findData("flex-network"));
+        QCOMPARE(page.config().model,23005);QVERIFY(!page.config().network);QVERIFY(page.config().automaticPtt);QVERIFY(!page.validationError().isEmpty());
+        page.findChild<QComboBox*>("radioDevice")->setEditText("192.0.2.10");QVERIFY(page.validationError().contains("4992"));
+        page.findChild<QComboBox*>("radioDevice")->setEditText("192.0.2.10:4992");QVERIFY(page.validationError().isEmpty());
+        preset->setCurrentIndex(preset->findData("rigctld"));QVERIFY(page.config().network);QCOMPARE(page.config().port,4532);QVERIFY(page.config().automaticPtt);QVERIFY(state->history().isEmpty());
+    }
+    void openingGuidedSettingsPreservesCustomPtt(){
+        radio::Config config;config.enabled=true;config.model=1022;config.device="COM24";config.pttType="GPIO";config.pttDevice="17";config.automaticPtt=true;config.leadMs=850;config.tailMs=200;
+        auto state=std::make_shared<FakeRadioState>();radio::Controller controller(nullptr,std::make_unique<FakeRadio>(state));RadioSettingsPage page(config,&controller);page.setAudioConnection("radio-usb");QVERIFY(page.config()==config);QVERIFY(page.findChild<QLabel*>("radioKeyingHelp")->text().contains("GPIO"));QCOMPARE(page.findChild<QComboBox*>("radioKeyingChoice")->currentData().toString(),QString("advanced"));QVERIFY(state->history().isEmpty());
+    }
     void ts990UsbPresetAndLegacyInputUseDataPttWithoutConnecting(){
         radio::Config config;config.enabled=true;config.model=2039;config.device="/dev/not-a-real-radio";config.pttValue=3;
         auto state=std::make_shared<FakeRadioState>();radio::Controller controller(nullptr,std::make_unique<FakeRadio>(state));RadioSettingsPage page(config,&controller);
@@ -57,7 +80,7 @@ time.sleep(30 if device == 'hung' else seconds if os.environ.get('OPENSSTV_RADIO
     void separateCatShortcutKeepsModelPortAndBaud(){
         radio::Config config;config.model=1022;config.device="COM18";config.baud=9600;config.enabled=false;config.network=true;
         auto state=std::make_shared<FakeRadioState>();radio::Controller controller(nullptr,std::make_unique<FakeRadio>(state));RadioSettingsPage page(config,&controller);
-        page.findChild<QPushButton*>("radioSeparateCat")->click();const auto selected=page.config();QVERIFY(selected.enabled);QVERIFY(!selected.network);QVERIFY(!selected.automaticPtt);QCOMPARE(selected.pttType,QString("None"));QCOMPARE(selected.model,1022);QCOMPARE(selected.device,QString("COM18"));QCOMPARE(selected.baud,9600);QVERIFY(selected.validate().isEmpty());
+        page.findChild<QComboBox*>("radioSetupPreset")->setCurrentIndex(page.findChild<QComboBox*>("radioSetupPreset")->findData("signalink"));const auto selected=page.config();QVERIFY(selected.enabled);QVERIFY(!selected.network);QVERIFY(!selected.automaticPtt);QCOMPARE(selected.pttType,QString("None"));QCOMPARE(selected.model,1022);QCOMPARE(selected.device,QString("COM18"));QCOMPARE(selected.baud,9600);QVERIFY(selected.validate().isEmpty());
         page.findChild<QPushButton*>("radioRefreshDevices")->click();QCOMPARE(page.config().device,QString("COM18"));QCOMPARE(page.config().baud,9600);
         page.setDeviceChoices({"COM18","COM22"});QVERIFY(!page.findChild<QPushButton*>("radioRefreshDevices")->isEnabled());QCOMPARE(page.config().device,QString("COM18"));QVERIFY(!controller.connected());QVERIFY(state->history().isEmpty());
     }

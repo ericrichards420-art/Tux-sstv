@@ -5,6 +5,7 @@
 #include "radio_ui.h"
 #include <QtWidgets>
 #include <QJsonArray>
+#include <QScopeGuard>
 
 namespace {
 // Keep asynchronous station changes on the page until their acknowledgement.
@@ -76,33 +77,37 @@ void MainWindow::showSetupWizard() {
 
     auto* audioPage=new SetupPage;
     audioPage->setTitle("2. Audio devices and levels");
-    audioPage->setSubTitle("Choose SignaLink USB, built-in radio USB audio, or another sound card.");
+    audioPage->setSubTitle("Choose SignaLink, radio USB audio, FlexRadio DAX, or separate input/output devices.");
     auto* audioLayout=new QVBoxLayout(audioPage);
     auto* target=paragraph(audioLayout,{},"setupAudioTarget");
     auto* audioSummary=paragraph(audioLayout,{},"setupAudioSummary");
     auto* audioButton=new QPushButton("Choose audio interface, devices and levels…");
     audioButton->setObjectName("setupConfigureAudio");audioLayout->addWidget(audioButton);
-    paragraph(audioLayout,"The guided audio check selects RX and TX devices, measures input, and optimizes supported USB playback levels. The output test is optional and can key a SignaLink or a radio using VOX.");
-    paragraph(audioLayout,"You can use SignaLink or another audio interface together with a separate CAT cable. Finish the audio check to save, then continue to CAT. If audio already works, choose Next to keep its current devices.");
+    paragraph(audioLayout,"Choose the receive and transmit sound devices, then check their levels. A SignaLink test tone can key the radio through audio. FlexRadio DAX uses separate RX and TX audio choices; computer PTT is selected in the next step.");
+    paragraph(audioLayout,"Audio and radio control are separate. Keep working audio choices, or open the audio setup above. Next lets you choose CAT, a separate PTT port, SignaLink / VOX, or manual keying.");
     audioLayout->addStretch();wizard.addPage(audioPage);
 
     auto* catPage=new SetupPage;
-    catPage->setTitle("3. Radio CAT / Hamlib");
-    catPage->setSubTitle("Keep the audio interface and add the CAT cable for frequency and mode control.");
+    catPage->setTitle("3. Radio control and transmit keying");
+    catPage->setSubTitle("Choose your connection and how the radio should start transmitting.");
     auto* catLayout=new QVBoxLayout(catPage);
     auto* catTarget=paragraph(catLayout,{},"setupCatTarget");
     auto* catScroll=new QScrollArea;
     catScroll->setWidgetResizable(true);catLayout->addWidget(catScroll,1);
     auto* catError=paragraph(catLayout,{},"setupCatError");
-    paragraph(catLayout,"Next saves CAT changes and closes the previous CAT connection. After setup, use Radio → Connect. CAT setup does not turn on PTT.");
+    paragraph(catLayout,"Next saves these settings and closes the previous radio connection. On the final page you can connect without transmitting, then optionally test PTT for one second.");
     wizard.addPage(catPage);
 
     auto* review=new SetupPage;
     review->setTitle("4. Setup summary");
-    review->setSubTitle("Review the saved station settings. Finish returns to Tux-sstv.");
+    review->setSubTitle("Review the saved audio and keying choices, then check the radio connection.");
     auto* reviewLayout=new QVBoxLayout(review);
     auto* summary=paragraph(reviewLayout,{},"setupSummary");
     paragraph(reviewLayout,"Live reception starts automatically when an audio input is available. Use Radio → Connect for CAT control, then check the radio's frequency, mode and audio levels before transmitting.");
+    auto* checkRow=new QHBoxLayout;
+    auto* connectCheck=new QPushButton("Connect and check radio");connectCheck->setObjectName("setupConnectRadio");checkRow->addWidget(connectCheck);
+    auto* pttCheck=new QPushButton("Test PTT for 1 second");pttCheck->setObjectName("setupPttTest");checkRow->addWidget(pttCheck);reviewLayout->addLayout(checkRow);
+    auto* checkStatus=paragraph(reviewLayout,"Connection and PTT have not been tested here.","setupCheckStatus");
     reviewLayout->addStretch();wizard.addPage(review);
 
     const auto configuration=[&]{
@@ -188,6 +193,7 @@ void MainWindow::showSetupWizard() {
         catAvailable=!catRemote||(remoteClient_->connected()&&radio::Config::fromJson(state.value("radioConfig").toObject(),original,error));
         catSession=connectionRevision;
         cat=new RadioSettingsPage(original,radio_);
+        cat->setAudioConnection(catRemote?state.value("audioConnection").toString():QSettings().value("audio/setupConnection","other").toString());
         if(auto* old=catScroll->takeWidget())delete old;
         catScroll->setWidget(cat);catScroll->setVisible(catAvailable);
         catTarget->setText("CAT hardware: "+targetText());
@@ -203,7 +209,7 @@ void MainWindow::showSetupWizard() {
         if(catSaved){catSaved=false;return true;}
         if(!catAvailable)return true;
         const auto config=cat->config();
-        if(config.enabled){const auto error=config.validate();if(!error.isEmpty()){catError->setText(error);return false;}}
+        if(config.enabled){const auto error=cat->validationError();if(!error.isEmpty()){catError->setText(error);return false;}}
         if(catRemote&&(!remoteClient_->connected()||catSession!=connectionRevision)){catError->setText("Shack connection changed. Go Back and reopen this step before saving.");return false;}
         if(config==original)return true;
         if(!catRemote&&original!=radioConfig_){catError->setText("CAT settings changed elsewhere. Go Back and reopen this step before saving.");return false;}
@@ -222,14 +228,44 @@ void MainWindow::showSetupWizard() {
         else applyRadioSetup(config,done);
         return false;
     };
-    review->initialize=[&]{
+    bool testOwned=false;quint64 testGeneration=0;
+    const auto releaseTest=qScopeGuard([&]{if(testOwned)radio_->releaseIfCurrent(testGeneration);});
+    const auto refreshReview=[&]{
         radio::Config config=radioConfig_;QString error;
         const bool available=!remoteClientMode()||(remoteClient_->connected()&&radio::Config::fromJson(remoteClient_->snapshot().value("radioConfig").toObject(),config,error));
         const auto* model=cat?cat->findChild<QComboBox*>("radioModel"):nullptr;
         const auto modelName=model&&model->currentData().toInt()==config.model?model->currentText():QString("Hamlib model %1").arg(config.model);
         QString catText=!available?"Unavailable — reconnect to check the shack setup":!config.enabled?"Disabled — audio-only operation":config.network?QString("rigctld · %1:%2").arg(config.host).arg(config.port):modelName+" · "+config.device;
-        const auto keying=config.automaticPtt?QString("CAT / configured PTT control"):QString("SignaLink / audio interface or manual control; CAT remains independent");
-        summary->setText("Station: "+targetText()+"\n\n"+audioText()+"\n\nCAT: "+catText+"\nPTT: "+keying+"\n\n"+remoteStatus_->text());
+        const auto keying=!available?QString("Unavailable — reconnect to the shack"):
+            !config.enabled?QString("External / manual keying — computer radio control is disabled"):
+            !config.automaticPtt?QString("SignaLink / VOX or manual keying; CAT remains independent"):
+            config.network?QString("Automatic transmit control through rigctld"):
+            config.pttType=="RTS"||config.pttType=="DTR"?QString("Automatic %1 PTT on %2").arg(config.pttType,config.pttDevice.isEmpty()?config.device:config.pttDevice):
+            config.pttType=="None"?QString("Not configured — select a PTT method"):
+            QString("Automatic CAT PTT (%1)").arg(config.pttValue==3?"data / USB input":config.pttValue==2?"microphone input":"default transmit audio");
+        connectCheck->setEnabled(available&&config.enabled&&!radio_->busy()&&!radio_->pttActive());
+        pttCheck->setEnabled(available&&config.enabled&&config.automaticPtt&&radio_->connected()&&!radio_->busy()&&!radio_->pttActive()&&radio_->supportsOwnedPtt());
+        pttCheck->setToolTip("This explicit test keys the radio for one second. Verify the radio enters TX and returns to RX.");
+        if(!testOwned&&!radio_->error().isEmpty())checkStatus->setText("Radio check: "+radio_->error());
+        summary->setText("Station: "+targetText()+"\n\n"+audioText()+"\n\nCAT: "+catText+"\nPTT: "+keying+"\nRadio connection: "+(!available?QString("unavailable"):!config.enabled?QString("not used"):radio_->connected()?QString("connected"):QString("not connected — use the check below"))+"\n\n"+remoteStatus_->text());
     };
+    review->initialize=refreshReview;
+    connect(radio_,&radio::Controller::changed,&wizard,[&]{if(wizard.currentId()==3)refreshReview();});
+    connect(connectCheck,&QPushButton::clicked,&wizard,[&]{checkStatus->setText("Checking the radio connection; no transmit command is requested.");connectRadio();});
+    connect(radio_,&radio::Controller::changed,&wizard,[&]{if(wizard.currentId()==3&&!testOwned&&radio_->connected()&&!radio_->busy()&&radio_->error().isEmpty()&&!checkStatus->text().startsWith("PTT"))checkStatus->setText("Radio connected. Audio levels and actual PTT operation still need to be checked.");});
+    connect(pttCheck,&QPushButton::clicked,&wizard,[&]{
+        testOwned=true;testGeneration=radio_->pttGeneration()+1;const auto generation=testGeneration;const QPointer<QWizard> guard(&wizard);
+        checkStatus->setText("PTT test: requesting transmit for one second…");
+        radio_->key([&,guard,generation](QString error){
+            if(!guard||!testOwned||testGeneration!=generation)return;
+            if(!error.isEmpty()){testOwned=false;radio_->releaseIfCurrent(generation);checkStatus->setText("PTT test failed: "+error);refreshReview();return;}
+            QTimer::singleShot(1000,guard,[&,guard,generation]{
+                if(!guard||!testOwned||testGeneration!=generation)return;
+                if(radio_->pttGeneration()!=generation){testOwned=false;checkStatus->setText("PTT test ended because radio control changed.");refreshReview();return;}
+                testOwned=false;radio_->release([&,guard](QString error){if(!guard)return;checkStatus->setText(error.isEmpty()?"PTT commands completed. Confirm the radio entered TX and returned to RX.":"PTT OFF was not confirmed: "+error);refreshReview();});
+            });
+        });
+    });
+    connect(&wizard,&QWizard::currentIdChanged,&wizard,[&](int page){if(page!=3&&testOwned){testOwned=false;radio_->releaseIfCurrent(testGeneration);}});
     wizard.exec();
 }

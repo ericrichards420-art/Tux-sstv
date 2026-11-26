@@ -101,6 +101,10 @@ private slots:
     void damagedProfileDataKeepsRecoveryCopyAndCurrentSetup(){
         seed(prepared());QSettings s;s.setValue("radioProfiles/state","not JSON");s.sync();auto state=std::make_shared<ProfileRadioState>();MainWindow window(nullptr,std::make_unique<ProfileRadio>(state));const auto saved=readStore(s.fileName());QCOMPARE(saved.entries.size(),1);QVERIFY(saved.current()->settings==a());QSettings check(s.fileName(),QSettings::IniFormat);check.beginGroup("radioProfiles/recovery");QCOMPARE(check.childKeys().size(),1);QCOMPARE(check.value(check.childKeys()[0]).toByteArray(),QByteArray("not JSON"));window.close();
     }
+    void flexDaxProfileKeepsSeparateAudioAndPtt(){
+        auto original=a();original.connection="flex-dax";original.input="winmm:7";original.output="winmm:3";original.radio.model=23005;original.radio.device="192.0.2.10:4992";original.radio.pttType="RIG";original.radio.pttValue=1;
+        profiles::Settings restored;QString error;QVERIFY(profiles::Settings::fromJson(original.toJson(),restored,error));QVERIFY(restored==original);
+    }
     void cleanupTestCase(){qputenv("PATH",oldPath_);}
 };
 QTEST_MAIN(ProfileTests)

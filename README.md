@@ -4,6 +4,10 @@ Send and receive slow-scan television pictures over amateur radio with Tux-sstv,
 
 ## Downloads
 
+These are the latest published installers. The new guided setup wizard is in
+Linux **1.15.0** and Windows **1.16.0** source below; updated packages are being
+built and tested in [GitHub Actions](https://github.com/ericrichards420-art/Tux-sstv/actions).
+
 | Platform | Version | Download |
 | --- | --- | --- |
 | Windows 10 (1809+) / Windows 11, 64-bit | 1.15.3 | [Download Windows installer](https://github.com/ericrichards420-art/Tux-sstv/releases/download/v1.15.3/Tux-sstv-1.15.3-windows-x64-setup.exe) |
@@ -53,15 +57,27 @@ Linux interface shown below. Click a picture to view it at full size.
 [Screenshot details](docs/screenshots/README.md)
 <!-- TUX-SSTV-SCREENSHOTS-END -->
 
-## Latest updates: Windows 1.15.3 / Linux 1.14.3
+## New guided setup: Linux 1.15.0 / Windows 1.16.0
 
-- Improves emoji picker sizing so complete emoji fit inside their cells.
-- Preserves spaces in text placed on SSTV images.
-- Includes the setup option for an audio interface together with a separate CAT cable.
+- Choose a radio USB/CAT, SignaLink, FlexRadio, rigctld, or manual setup preset.
+- Select audio and CAT independently, with an explicit choice of CAT, RTS/DTR, or audio-operated PTT.
+- Configure Flex SmartSDR CAT virtual COM separately from native SmartSDR network control.
+- Choose DAX receive and transmit endpoints with clear device labels.
+- Review the configuration, connect without transmitting, and optionally test PTT for one second.
+
+Read the [setup guide](linux/docs/SETUP_GUIDE.md). The new wizard has automated regression coverage; Flex hardware and on-air validation are still needed.
+
+| Flex SmartSDR CAT preset | DAX audio selection |
+| --- | --- |
+| [![Guided Flex CAT setup](docs/screenshots/setup-flex-cat.png)](docs/screenshots/setup-flex-cat.png) | [![Separate DAX receive and transmit audio](docs/screenshots/setup-dax-audio.png)](docs/screenshots/setup-dax-audio.png) |
+
+Setup previews use example devices and a disconnected radio.
 
 ## SignaLink with a separate CAT cable
 
-Select **SignaLink USB** in audio setup and choose its sound device, often named **USB AUDIO CODEC**. In CAT setup, choose **Use audio interface + separate CAT cable**, then select your radio model, COM port, and baud rate. This lets the audio interface handle audio-operated PTT while CAT controls frequency and mode.
+In the new wizard, select **SignaLink USB** and its sound device, often named **USB AUDIO CODEC**. Choose the **SignaLink + CAT** preset for radio control, then select the radio model, CAT port, and baud rate. The keying choice explicitly identifies audio-operated PTT; CAT controls frequency and mode independently. This applies to any compatible radio.
+
+In older published installers, the equivalent CAT option is **Use audio interface + separate CAT cable**.
 
 ## Support
 
@@ -74,8 +90,8 @@ Created and developed by **Eric Richards, KI5BZO**.
 
 The current platform source snapshots are available here:
 
-- [Linux 1.14.3 source](linux/)
-- [Windows 1.15.3 source](windows/)
+- [Linux 1.15.0 source](linux/)
+- [Windows 1.16.0 source](windows/)
 - [Build instructions](BUILDING.md)
 - [Project license](LICENSE.md)
 

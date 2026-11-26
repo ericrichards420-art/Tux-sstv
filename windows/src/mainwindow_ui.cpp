@@ -364,7 +364,7 @@ void MainWindow::showSettingsPage(int index){
     auto* audioSetup=new QPushButton("Setup wizard…");audioSetup->setObjectName("settingsOpenAudioWizard");outer->addWidget(audioSetup);connect(audioSetup,&QPushButton::clicked,&dialog,[this,&dialog]{dialog.reject();QTimer::singleShot(0,this,&MainWindow::showSetupWizard);});
     auto* tabs=new QTabWidget;tabs->setObjectName("settingsTabs");outer->addWidget(tabs);
     auto* general=new QWidget;auto* layout=new QVBoxLayout(general);auto* generalScroll=new QScrollArea;generalScroll->setObjectName("settingsGeneralScroll");generalScroll->setWidgetResizable(true);generalScroll->setFrameShape(QFrame::NoFrame);generalScroll->setWidget(general);tabs->addTab(generalScroll,"General");auto* form=new QFormLayout;
-    auto* radioPage=new RadioSettingsPage(radioConfig_,radio_);radioPage->setEnabled(!linked);auto* radioScroll=new QScrollArea;radioScroll->setWidgetResizable(true);radioScroll->setWidget(radioPage);
+    auto* radioPage=new RadioSettingsPage(radioConfig_,radio_);radioPage->setAudioConnection(QSettings().value("audio/setupConnection","other").toString());radioPage->setEnabled(!linked);auto* radioScroll=new QScrollArea;radioScroll->setWidgetResizable(true);radioScroll->setWidget(radioPage);
     if(linked){
         radioScroll->setParent(&dialog);radioScroll->hide();auto* remoteRadio=new QWidget;auto* remoteLayout=new QVBoxLayout(remoteRadio);
         auto* note=new QLabel("Open Hamlib setup below to select the radio model, CAT device and PTT method for the shack. Pairing stays connected while you configure the idle station.");note->setWordWrap(true);remoteLayout->addWidget(note);
@@ -403,7 +403,7 @@ void MainWindow::showSettingsPage(int index){
     const auto validate=[&] {
         speed->setEnabled(enabled->isChecked());tone->setEnabled(enabled->isChecked());QString error;
         if(enabled->isChecked())try{sstv::morseIdDurationMs({call->text(),speed->value(),tone->value()});}catch(const std::exception& e){error=QString::fromUtf8(e.what());}
-        const auto config=radioPage->config();const auto connectionError=config.enabled?config.validate():QString{};
+        const auto config=radioPage->config();const auto connectionError=config.enabled?radioPage->validationError():QString{};
         radioError->setText(connectionError);morseError->setText(error);buttons->button(QDialogButtonBox::Save)->setEnabled(error.isEmpty()&&connectionError.isEmpty()&&!radio_->busy());
     };
     connect(enabled,&QCheckBox::toggled,&dialog,validate);connect(call,&QLineEdit::textChanged,&dialog,validate);

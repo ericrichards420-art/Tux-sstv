@@ -1,0 +1,142 @@
+name: Build and publish Tux-sstv
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'linux/**'
+      - 'windows/**'
+      - '.github/workflows/release.yml'
+      - 'tools/**'
+      - 'release.json'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tux-sstv-release
+  cancel-in-progress: false
+
+jobs:
+  linux:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: linux
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install build and audio dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build qt6-base-dev qt6-qpa-plugins qt6-svg-plugins libhamlib-dev libhamlib-utils alsa-utils python3 fonts-noto-color-emoji gstreamer1.0-tools gstreamer1.0-plugins-base gstreamer1.0-plugins-good dpkg-dev
+      - name: Configure
+        run: cmake -S . -B build-package -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DCMAKE_INSTALL_PREFIX=/usr
+      - name: Build
+        run: cmake --build build-package -j 4
+      - name: Run tests
+        run: ctest --test-dir build-package --output-on-failure --timeout 180
+      - name: Build and inspect Debian package
+        run: |
+          cpack --config build-package/CPackConfig.cmake -B dist
+          dpkg-deb --info dist/*.deb
+          mkdir -p package-check
+          dpkg-deb --extract dist/*.deb package-check
+          package-check/usr/bin/tux-sstv --version
+          test "$(package-check/usr/bin/tux-sstv --list-modes | wc -l)" -ge 43
+          test -f package-check/usr/share/doc/tux-sstv/SETUP_GUIDE.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-package
+          path: linux/dist/*.deb
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: linux-test-logs
+          path: linux/build-package/Testing/Temporary/
+
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: windows
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Check bootstrap with Windows PowerShell 5.1
+        shell: powershell
+        run: .\tests\bootstrap_windows_tests.ps1
+      - name: Check installer packaging with Windows PowerShell 5.1
+        shell: powershell
+        run: .\tests\installer_windows_tests.ps1
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            make curl tar gzip
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-pkgconf
+            mingw-w64-ucrt-x86_64-libusb
+            mingw-w64-ucrt-x86_64-qt6-base
+            mingw-w64-ucrt-x86_64-qt6-multimedia
+            mingw-w64-ucrt-x86_64-qt6-svg
+            mingw-w64-ucrt-x86_64-qt6-imageformats
+      - name: Build, test, deploy, and create installer
+        run: bash packaging/build-windows.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-package
+          path: |
+            windows/dist/windows/*-setup.exe
+            windows/dist/windows/*-preview.zip
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: windows-test-logs
+          path: |
+            windows/installer-logs/
+            windows/build-windows-logs/
+            windows/build-windows/Testing/Temporary/
+
+  publish-linux:
+    needs: linux
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-package
+          path: release-assets
+      - name: Verify assets and publish Linux release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/publish-release.py linux release-assets
+
+  publish-windows:
+    needs: windows
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-package
+          path: release-assets
+      - name: Verify assets and publish Windows release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/publish-release.py windows release-assets

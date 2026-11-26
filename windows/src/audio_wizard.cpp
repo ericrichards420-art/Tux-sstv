@@ -11,6 +11,15 @@
 #include <algorithm>
 #include <QtConcurrentRun>
 
+namespace {
+QString selectedAudioDevice(const QComboBox* box){
+    const int index=box->currentIndex();
+    if(index>=0&&box->currentText()==box->itemText(index)&&box->itemData(index).canConvert<QString>()&&!box->itemData(index).toString().isEmpty())return box->itemData(index).toString();
+    return box->currentText().trimmed();
+}
+void selectAudioDevice(QComboBox* box,const QString& name){const int index=box->findData(name);if(index>=0)box->setCurrentIndex(index);else box->setEditText(name);}
+}
+
 QList<AudioWizard::PcmDevice> AudioWizard::pcmDevices(const QByteArray& listing){
     QList<PcmDevice> devices;
     for(const auto& line:QString::fromLocal8Bit(listing).split('\n')){
@@ -32,14 +41,14 @@ AudioWizard::AudioWizard(const QString& input,const QString& output,QWidget* par
     setObjectName("audioWizard");setWindowTitle("Tux-sstv audio setup");setPixmap(QWizard::LogoPixmap,branding::tux(36));resize(740,580);
     auto* devices=new QWizardPage;devices->setTitle("1. Choose the sound device for your radio");auto* form=new QFormLayout(devices);form->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
     connection_=new QComboBox;connection_->setObjectName("wizardConnection");
-    connection_->addItem("SignaLink USB","signalink");connection_->addItem("Radio with built-in USB audio","radio-usb");connection_->addItem("Other USB audio interface","usb");connection_->addItem("Computer sound card / other device","other");
+    connection_->addItem("SignaLink USB","signalink");connection_->addItem("Radio with built-in USB audio","radio-usb");connection_->addItem("Other USB audio interface","usb");connection_->addItem("FlexRadio / SmartSDR DAX","flex-dax");connection_->addItem("Computer sound card / other device","other");
     const int savedConnection=connection_->findData(QSettings().value("audio/setupConnection","other").toString());connection_->setCurrentIndex(savedConnection<0?connection_->findData("other"):savedConnection);form->addRow("Audio interface",connection_);
     connectionHelp_=new QLabel;connectionHelp_->setObjectName("wizardConnectionHelp");connectionHelp_->setWordWrap(true);connectionHelp_->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Minimum);connectionHelp_->setAlignment(Qt::AlignLeft|Qt::AlignTop);form->addRow(connectionHelp_);
     device_=new QComboBox;device_->setObjectName("wizardDevice");device_->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);device_->setMinimumContentsLength(26);
-    refresh_=new QPushButton("Refresh devices");refresh_->setObjectName("wizardRefresh");auto* row=new QHBoxLayout;row->addWidget(device_,1);row->addWidget(refresh_);form->addRow("Sound device",row);
+    refresh_=new QPushButton("Refresh devices");refresh_->setObjectName("wizardRefresh");auto* row=new QHBoxLayout;row->addWidget(device_,1);row->addWidget(refresh_);deviceLabel_=new QLabel("Sound device");deviceLabel_->setObjectName("wizardDeviceLabel");form->addRow(deviceLabel_,row);
     selection_=new QLabel;selection_->setObjectName("wizardSelection");selection_->setWordWrap(true);form->addRow(selection_);
     discoveryStatus_=new QLabel;discoveryStatus_->setObjectName("wizardDiscoveryStatus");discoveryStatus_->setWordWrap(true);form->addRow(discoveryStatus_);
-    advanced_=new QCheckBox("Advanced: separate receive / transmit devices or manual names");advanced_->setObjectName("wizardAdvanced");form->addRow(advanced_);
+    advanced_=new QCheckBox("Choose separate receive and transmit devices");advanced_->setObjectName("wizardAdvanced");form->addRow(advanced_);
     auto* advancedPanel=new QWidget;advancedPanel->setObjectName("wizardAdvancedDevices");auto* advancedForm=new QFormLayout(advancedPanel);advancedForm->setContentsMargins(0,0,0,0);
     input_=new QComboBox;output_=new QComboBox;input_->setEditable(true);output_->setEditable(true);
     input_->setInsertPolicy(QComboBox::NoInsert);output_->setInsertPolicy(QComboBox::NoInsert);
@@ -75,7 +84,7 @@ AudioWizard::AudioWizard(const QString& input,const QString& output,QWidget* par
     connect(connection_,&QComboBox::currentIndexChanged,this,[this]{if(connectionType()=="signalink")interfacePtt_->setChecked(true);if(!relay_)rebuildDevices();updateGuidance();});
     connect(device_,&QComboBox::currentIndexChanged,this,[this]{
         const auto pair=device_->currentData().toMap();if(pair.isEmpty()){advanced_->setChecked(true);return;}
-        stopChecks();{const QSignalBlocker in(input_),out(output_);input_->setEditText(pair["input"].toString());output_->setEditText(pair["output"].toString());}updateGuidance();
+        stopChecks();{const QSignalBlocker in(input_),out(output_);selectAudioDevice(input_,pair["input"].toString());selectAudioDevice(output_,pair["output"].toString());}updateGuidance();
     });
     for(auto* box:{input_,output_})connect(box,&QComboBox::currentTextChanged,this,[this]{stopChecks();synchronizeDevice();updateGuidance();});
     connect(refresh_,&QPushButton::clicked,this,&AudioWizard::discoverDevices);
@@ -117,7 +126,7 @@ AudioWizard::AudioWizard(const QString& input,const QString& output,QWidget* par
     limit_.setSingleShot(true);connect(&limit_,&QTimer::timeout,this,[this]{stopChecks();});
     if(relay_){
         for(auto* combo:findChildren<QComboBox*>())if(combo->objectName().startsWith("wizard")){
-            if(combo->isEditable())connect(combo,&QComboBox::currentTextChanged,this,[this,combo](const QString& value){if(!relayApplying_)emit relayRequest("edit",{{"name",combo->objectName()},{"value",value}});});
+            if(combo->isEditable())connect(combo,&QComboBox::currentTextChanged,this,[this,combo](const QString& value){if(!relayApplying_)emit relayRequest("edit",{{"name",combo->objectName()},{"value",combo==input_?inputDevice():combo==output_?outputDevice():value}});});
             else connect(combo,&QComboBox::currentIndexChanged,this,[this,combo](int index){if(!relayApplying_)emit relayRequest("edit",{{"name",combo->objectName()},{"value",combo->itemData(index,Qt::UserRole+1).toInt()}});});
         }
         for(auto* box:findChildren<QCheckBox*>())if(box->objectName().startsWith("wizard"))connect(box,&QCheckBox::toggled,this,[this,box](bool value){if(!relayApplying_)emit relayRequest("edit",{{"name",box->objectName()},{"value",value}});});
@@ -127,8 +136,8 @@ AudioWizard::AudioWizard(const QString& input,const QString& output,QWidget* par
     }else {rebuildDevices();updateGuidance();discoverDevices();}
 }
 AudioWizard::~AudioWizard(){if(relay_){relayClosing_=true;return;}mixerJob_.disconnect(this);finishMixer(false);discoveryLimit_.stop();inputList_.disconnect(this);outputList_.disconnect(this);stopChecks();inputList_.kill();outputList_.kill();inputList_.waitForFinished(500);outputList_.waitForFinished(500);}
-QString AudioWizard::inputDevice() const{return input_->currentText().trimmed();}
-QString AudioWizard::outputDevice() const{return output_->currentText().trimmed();}
+QString AudioWizard::inputDevice() const{return selectedAudioDevice(input_);}
+QString AudioWizard::outputDevice() const{return selectedAudioDevice(output_);}
 bool AudioWizard::openRadioControls() const{return radio_->isChecked();}
 QString AudioWizard::connectionType() const{return connection_->currentData().toString();}
 bool AudioWizard::useInterfacePtt() const{return connectionType()=="signalink"&&interfacePtt_->isChecked();}
@@ -215,13 +224,14 @@ void AudioWizard::discoveryFinished(QProcess& process,bool input,int code,QProce
     discoveryStatus_->setText(!discoveryErrors_.isEmpty()?discoveryErrors_.join(' ')+" Refresh to retry, or use Advanced.":
         common?QString("%1 sound device%2 found for both receive and transmit. Select one above.").arg(common).arg(common==1?"":"s"):
         "No sound device found for both directions. Connect your USB device, wait a moment, then Refresh. Separate input/output choices are under Advanced.");
+    if(connectionType()=="flex-dax")discoveryStatus_->setText("DAX receive and transmit use separate devices. Select the RX channel for your slice and the DAX TX output below.");
     updateGuidance();
 }
 void AudioWizard::rebuildDevices(){
     for(const auto& entry:{qMakePair(input_,inputs_),qMakePair(output_,outputs_)}){
-        const QSignalBlocker block(entry.first);const auto current=entry.first->currentText();entry.first->clear();entry.first->addItem(current);
-        for(const auto& device:entry.second){const int found=entry.first->findText(device.name);if(found<0)entry.first->addItem(device.name);entry.first->setItemData(entry.first->findText(device.name),device.description,Qt::ToolTipRole);}
-        entry.first->setEditText(current);
+        const QSignalBlocker block(entry.first);const auto current=selectedAudioDevice(entry.first);entry.first->clear();entry.first->addItem(current,current);
+        for(const auto& device:entry.second){const int found=entry.first->findData(device.name);if(found<0)entry.first->addItem(device.name.startsWith("winmm:")?interfaceLabel(device,false):device.name,device.name);if(device.name.startsWith("winmm:"))entry.first->setItemText(entry.first->findData(device.name),interfaceLabel(device,false));entry.first->setItemData(entry.first->findData(device.name),device.description,Qt::ToolTipRole);}
+        selectAudioDevice(entry.first,current);
     }
     const QSignalBlocker block(device_);device_->clear();device_->addItem("Separate devices / saved custom setup…",QVariantMap{});
     device_->addItem("Computer's default sound device",QVariantMap{{"input","default"},{"output","default"}});
@@ -233,6 +243,15 @@ void AudioWizard::rebuildDevices(){
         int duplicates=0;for(const auto& other:keys)if(receive[other].description==in.description)++duplicates;
         if(duplicates>1)label+=" ("+key+")";
         device_->addItem(label,QVariantMap{{"input",in.name},{"output",out.name}});device_->setItemData(device_->count()-1,QString("Receive: %1\nTransmit: %2").arg(in.name,out.name),Qt::ToolTipRole);
+    }
+    if(connectionType()=="flex-dax"){
+        const auto choose=[&](QComboBox* box,const QList<PcmDevice>& devices,const QString& direction){
+            if(selectedAudioDevice(box)!="default")return;
+            QStringList matches;
+            for(const auto& d:devices){const auto text=d.description+" "+d.name;if(text.contains("DAX",Qt::CaseInsensitive)&&text.contains(QRegularExpression("\\b"+direction+"\\b",QRegularExpression::CaseInsensitiveOption))&&!text.contains("IQ",Qt::CaseInsensitive)&&!text.contains("reserved",Qt::CaseInsensitive))matches<<d.name;}
+            if(matches.size()==1)selectAudioDevice(box,matches.first());
+        };
+        choose(input_,inputs_,"RX");choose(output_,outputs_,"TX");
     }
     synchronizeDevice();
 }
@@ -250,9 +269,12 @@ QString AudioWizard::deviceLabel(const QString& name,const QList<PcmDevice>& dev
     return name;
 }
 void AudioWizard::updateGuidance(){
-    const bool signalink=connectionType()=="signalink",usb=connectionType()=="radio-usb";
+    const bool signalink=connectionType()=="signalink",usb=connectionType()=="radio-usb",dax=connectionType()=="flex-dax";
+    if(dax){advanced_->setChecked(true);}
+    advanced_->setVisible(!dax);device_->setVisible(!dax);deviceLabel_->setText(dax?"DAX devices":"Sound device");device_->setEnabled(!dax&&!optimizationPending_);
     const int txPercent=transmitPercent();
-    connectionHelp_->setText(signalink?
+    connectionHelp_->setText(dax?
+        "Select your slice's DAX RX channel for receive and DAX TX for transmit below. Enable that RX channel and DAX TX in SmartSDR. CAT / PTT is configured in the next station setup step; DAX audio alone does not key the radio.":signalink?
         "Choose SignaLink USB — USB AUDIO CODEC for receive and transmit. It works with any compatible radio; CAT is separate. To identify your interface among several USB codecs, unplug it and Refresh, then reconnect and Refresh.":usb?
         "Choose your radio's USB sound device for both receive and transmit. It may appear as USB Audio CODEC instead of the radio model. A USB cable for CAT / frequency control alone does not provide audio.":
         "Choose the sound device connected to your radio. One selection sets both receive and transmit. For a microphone and speakers on different devices, use Advanced below.");
@@ -263,6 +285,10 @@ void AudioWizard::updateGuidance(){
     if(signalink){
         txHint_->setText(QString("Click Optimize SignaLink audio levels, then play the one-second tone and watch the red PTT light. No radio is needed to check this light. The test uses your TX setting (%1%). The SignaLink can key a connected radio when the tone plays; use its TX knob to adjust audio sent to that radio. The wizard cannot read the PTT light.").arg(txPercent));
     }else txHint_->setText(QString("Play a one-second 1900 Hz tone at a low test level (10%). %1 The check does not request Hamlib PTT; a radio or interface using VOX can transmit when audio plays.").arg(usb?"Select USB audio as the radio's transmit-audio source if its menu requires it.":"Check the interface output and your radio's audio level."));
+    if(dax){
+        rxHint_->setText("Choose the DAX RX channel assigned to your active SmartSDR slice. Start the input meter and adjust the DAX RX level without clipping.");
+        txHint_->setText("Choose DAX TX and enable DAX TX in SmartSDR. This tone checks audio only; it does not request CAT PTT. Configure keying in the next station setup step.");
+    }
     interfacePtt_->setVisible(signalink);
     optimize_->setVisible(signalink);mixerStatus_->setVisible(signalink);
     radioHint_->setText(signalink?"SignaLink carries receive/transmit audio and handles PTT. You can also connect a separate CAT cable for frequency and mode control. Keep SignaLink selected here and enable CAT in the next setup step. The checkbox keeps CAT settings and turns off automatic CAT PTT.":"Audio and radio control are separate. If your radio needs computer-controlled PTT, configure it in Radio setup and Connect. Some radios require USB audio to be selected in their own menus.");
@@ -276,13 +302,21 @@ void AudioWizard::updateGuidance(){
 #endif
     review_->setText(QString("Receive from: %1\nTransmit through: %2\nTux-sstv TX level: %3%%4\n\nFinish saves these choices. Cancel restores your previous setup.").arg(input,output).arg(transmitPercent()).arg(optimized?"\nUSB playback levels optimized and verified.":""));
 }
+bool AudioWizard::validateCurrentPage(){
+    if(relay_)return true; // The shack validates its own devices before advancing.
+    if(currentId()==0&&connectionType()=="flex-dax"&&(inputDevice().isEmpty()||outputDevice().isEmpty()||inputDevice()=="default"||outputDevice()=="default")){
+        discoveryStatus_->setText("Choose both a receive input and a transmit output for DAX. The computer's default microphone and speakers are not DAX devices.");return false;
+    }
+    return QWizard::validateCurrentPage();
+}
 void AudioWizard::done(int result){if(relay_){if(!relayApplying_&&!relayClosing_)emit relayRequest(result==Accepted?"finish":"cancel",{});if(result!=Accepted)finishRelay(result);return;}stopChecks();if(result==Accepted && (inputDevice().isEmpty() || outputDevice().isEmpty())){QMessageBox::information(this,"Audio devices","Enter both input and output device names.");return;}finishMixer(result==Accepted);QWizard::done(result);}
 void AudioWizard::stopChecks(){if(relay_){if(!relayApplying_&&!relayClosing_)emit relayRequest("stop",{});return;}stopping_=true;limit_.stop();capture_.kill();playback_.kill();capture_.waitForFinished(500);playback_.waitForFinished(500);level_->setValue(0);updateButtons();}
 void AudioWizard::updateButtons(){
     const bool checking=capture_.state()!=QProcess::NotRunning||playback_.state()!=QProcess::NotRunning;
     listen_->setText(capture_.state()==QProcess::NotRunning?"Start input meter":"Stop input meter");tone_->setText(playback_.state()==QProcess::NotRunning?"Play test tone":"Stop test tone");
     optimize_->setEnabled(!optimizationPending_&&!checking);listen_->setEnabled(!optimizationPending_);tone_->setEnabled(!optimizationPending_);txLevel_->setEnabled(!optimizationPending_&&!checking);
-    for(auto* box:{connection_,device_,input_,output_})box->setEnabled(!optimizationPending_);
+    for(auto* box:{connection_,device_,input_,output_}){box->setEnabled(!optimizationPending_);}
+    device_->setEnabled(!optimizationPending_&&connectionType()!="flex-dax");
     if(currentPage()){
         const bool final=currentPage()->isFinalPage()||nextId()<0;
         button(QWizard::BackButton)->setEnabled(!optimizationPending_&&visitedIds().size()>1);

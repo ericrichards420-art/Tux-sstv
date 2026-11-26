@@ -128,6 +128,10 @@ Ubuntu App Center can still show its standard third-party package warning when
 opening a local `.deb`. Application descriptions and release labels do not change
 the package's source or grant Ubuntu verification.
 
+## Guided station setup — 1.16.0
+
+Choose a connection preset for radio USB/CAT, SignaLink with CAT, FlexRadio SmartSDR CAT, native SmartSDR networking, or rigctld. Audio devices and transmit keying have separate choices. Flex DAX exposes separate RX and TX selectors with readable device names. The final setup page reports the actual keying configuration, offers a connection check, and has an optional one-second PTT test that releases when the wizard closes or leaves the review page. Existing radio profiles keep their saved settings. See [the setup guide](docs/SETUP_GUIDE.md).
+
 ## A new name, the same station
 
 **OpenSSTV is now Tux-sstv.** Eric Richards — KI5BZO remains credited as its

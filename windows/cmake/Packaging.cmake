@@ -26,6 +26,9 @@ plus Easter and Halloween, in a separate Holidays gallery.
 This update improves PTT cancellation and recovery, remote voice startup,
 and stalled SignaLink or manual playback handling.
 .
+The guided Setup wizard offers radio USB/CAT, SignaLink, FlexRadio DAX and SmartSDR,
+separate RTS/DTR PTT, and rigctld connection choices. Review the actual keying
+configuration, connect without transmitting, and optionally check PTT for one second.
 The Setup wizard guides audio devices and levels, CAT/Hamlib radio control,
 and local or remote station connections. Choose and adjust a SignaLink USB,
 a radio's built-in USB sound card or another audio interface. Prepare pictures with clean

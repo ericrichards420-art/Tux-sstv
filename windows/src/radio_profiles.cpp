@@ -19,7 +19,7 @@ bool Settings::fromJson(const QJsonObject& json,Settings& result,QString& error)
     if(!radio::Config::fromJson(json.value("radio").toObject(),value.radio,error))return false;
     const auto text=[&](const char* key,QString& out){const auto v=json.value(key);if(!v.isString()||v.toString().trimmed().isEmpty()||v.toString().size()>500||v.toString().contains(QChar::Null))return false;out=v.toString();return true;};
     const auto number=[&](const char* key,double low,double high,bool integral){const auto v=json.value(key);const double n=v.toDouble(low-1);return v.isDouble()&&std::isfinite(n)&&n>=low&&n<=high&&(!integral||n==std::floor(n));};
-    if(!text("input",value.input)||!text("output",value.output)||!text("connection",value.connection)||!QStringList{"other","usb","signalink","radio-usb"}.contains(value.connection)||
+    if(!text("input",value.input)||!text("output",value.output)||!text("connection",value.connection)||!QStringList{"other","usb","signalink","radio-usb","flex-dax"}.contains(value.connection)||
        !number("txLevel",0,100,true)||!number("rxGain",-24,24,true)||!number("clockPpm",-10000,10000,false)||!number("offsetHz",-200,200,false)||
        !json.value("autoRx").isBool()||!json.value("autoClock").isBool()||!json.value("autoFrequency").isBool()){error="Invalid radio profile audio or receive settings.";return false;}
     value.txLevel=json["txLevel"].toInt();value.rxGain=json["rxGain"].toInt();value.clockPpm=json["clockPpm"].toDouble();value.offsetHz=json["offsetHz"].toDouble();

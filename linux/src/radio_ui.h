@@ -15,6 +15,8 @@ public:
     RadioSettingsPage(const radio::Config&,radio::Controller*,QWidget* parent=nullptr);
     radio::Config config() const;
     void setDeviceChoices(const QStringList&);
+    void setAudioConnection(const QString&);
+    QString validationError() const;
 signals:
     void edited();
 private:
@@ -23,6 +25,13 @@ private:
     QLineEdit *host_,*pttDevice_,*extra_;
     QSpinBox *port_,*lead_,*tail_;
     QPushButton* refreshDevices_;
+    QComboBox *preset_,*keying_;
+    QLabel *setupHelp_,*keyingHelp_,*deviceLabel_,*modelLabel_,*baudLabel_,*serverLabel_,*pttDeviceLabel_;
+    bool guiding_=false;
+    QString audioConnection_;
+    void applyPreset(const QString&);
+    void selectKeying(const QString&);
+    void updateGuidance();
 };
 class RadioControls:public QDialog {
     Q_OBJECT

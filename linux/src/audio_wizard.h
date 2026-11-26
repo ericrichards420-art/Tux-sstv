@@ -38,12 +38,13 @@ signals:
     void relayRequest(const QString&,const QJsonObject&);
 protected:
     void done(int result) override;
+    bool validateCurrentPage() override;
 private:
     QComboBox *input_,*output_;
     QComboBox *connection_,*device_;
     QCheckBox *advanced_,*interfacePtt_;
     QPushButton* refresh_;
-    QLabel *connectionHelp_,*discoveryStatus_,*selection_,*receiveDevice_,*transmitDevice_,*rxHint_,*txHint_,*review_,*radioHint_;
+    QLabel *deviceLabel_,*connectionHelp_,*discoveryStatus_,*selection_,*receiveDevice_,*transmitDevice_,*rxHint_,*txHint_,*review_,*radioHint_;
     QList<PcmDevice> inputs_,outputs_;
     bool inputListed_=false,outputListed_=false;
     QStringList discoveryErrors_;

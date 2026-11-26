@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(TuxSSTV VERSION 1.14.3 LANGUAGES CXX)
+project(TuxSSTV VERSION 1.15.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
@@ -161,7 +161,7 @@ configure_file(resources/org.opensstv.OpenSSTV.metainfo.xml.in
                org.opensstv.OpenSSTV.metainfo.xml @ONLY)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/org.opensstv.OpenSSTV.metainfo.xml"
         DESTINATION share/metainfo)
-install(FILES README.md docs/SEPARATE_CAT.md docs/COMPATIBILITY.md docs/SOURCES.md docs/ARCHITECTURE.md docs/RADIO.md docs/REMOTE.md docs/IMPROVEMENTS.md docs/TEST_PATTERNS.md docs/THIRD_PARTY_NOTICES.md docs/QUICKSTART.md docs/ARTWORK.md
+install(FILES README.md docs/SETUP_GUIDE.md docs/SEPARATE_CAT.md docs/COMPATIBILITY.md docs/SOURCES.md docs/ARCHITECTURE.md docs/RADIO.md docs/REMOTE.md docs/IMPROVEMENTS.md docs/TEST_PATTERNS.md docs/THIRD_PARTY_NOTICES.md docs/QUICKSTART.md docs/ARTWORK.md
         DESTINATION share/doc/tux-sstv)
 
 install(FILES resources/licenses/UNICODE.txt resources/licenses/LGPL-3.0.txt resources/licenses/GPL-3.0.txt resources/licenses/LGPL-2.1.txt
