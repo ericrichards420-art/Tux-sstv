@@ -1,8 +1,9 @@
 # Tux-sstv screenshots
 
 These are captures of the Linux interface, added November 25, 2026.
-Click an image below for the original PNG. The three documentation captures
-use the current Linux 1.14.3 application UI with an isolated example profile.
+Click an image below for the original PNG. The original three documentation captures
+use the Linux 1.14.3 application UI with an isolated example profile.
+The guided setup previews below were added November 26 using Linux 1.15.0.
 
 ## Receiving over the air
 
@@ -38,6 +39,17 @@ The audio step explains SignaLink USB, built-in radio USB sound cards,
 other audio interfaces, receive/transmit levels, and using a separate CAT
 cable. The full station wizard also guides local/remote connection and CAT
 setup. This capture shows the audio overview before device selection.
+
+## New guided radio setup
+
+These previews show the actual Linux 1.15.0 interface with example profiles,
+example audio endpoints, and a disconnected radio. They show configuration
+choices; they are not evidence of a FlexRadio hardware or on-air test.
+
+- [Flex SmartSDR CAT virtual COM preset](setup-flex-cat.png)
+- [Separate DAX receive and transmit devices](setup-dax-audio.png)
+- [SignaLink audio-operated PTT with separate CAT](setup-signalink.png)
+- [Configuration review and explicit test controls](setup-review.png)
 
 Tux-sstv was developed by **Eric Richards, KI5BZO**.
 See the [project license](../../LICENSE.md) and the platform-specific
