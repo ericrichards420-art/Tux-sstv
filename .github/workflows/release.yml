@@ -122,7 +122,9 @@ jobs:
       - name: Verify assets and publish Linux release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 tools/publish-release.py linux release-assets
+        run: |
+          python3 -m unittest discover -s tools -p 'test_publish_release.py'
+          python3 tools/publish-release.py linux release-assets
 
   publish-windows:
     needs: windows
@@ -139,4 +141,6 @@ jobs:
       - name: Verify assets and publish Windows release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 tools/publish-release.py windows release-assets
+        run: |
+          python3 -m unittest discover -s tools -p 'test_publish_release.py'
+          python3 tools/publish-release.py windows release-assets

@@ -42,6 +42,9 @@ try {
     Assert-Rejected { Assert-InstallerBundle $bundle } 'Incomplete Qt deployment rejected'
     [IO.File]::WriteAllText($plugin,'fixture')
 
+    # Windows PowerShell 5.1 must load the archive enum before evaluating
+    # arguments to ZipFile.Open; loading FileSystem alone is not sufficient.
+    Add-Type -AssemblyName System.IO.Compression
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $badZip = Join-Path $temporary 'bad.zip'
     $zip = [IO.Compression.ZipFile]::Open($badZip,[IO.Compression.ZipArchiveMode]::Create)

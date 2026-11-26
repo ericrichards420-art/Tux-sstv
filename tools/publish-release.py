@@ -91,6 +91,12 @@ def verify_assets(assets, expected):
             raise RuntimeError(f"Release asset size or SHA-256 mismatch: {name}")
 
 
+def platform_tree(base, commit, platform):
+    tree = api(base + "/commits/" + commit)["commit"]["tree"]["sha"]
+    entries = api(base + "/git/trees/" + tree)["tree"]
+    return next(entry["sha"] for entry in entries if entry["path"] == platform and entry["type"] == "tree")
+
+
 def main():
     platform, output_arg = sys.argv[1:]
     config = json.loads((ROOT / "release.json").read_text())[platform]
@@ -103,6 +109,23 @@ def main():
     version = re.search(r"project\(TuxSSTV VERSION ([0-9.]+)", cmake).group(1)
     if version != config["version"]:
         raise RuntimeError("Release version does not match the built source")
+    base = f"/repos/{REPOSITORY}"
+    tag = config["tag"]
+    ref = maybe_get(base + "/git/ref/tags/" + urllib.parse.quote(tag, safe=""))
+    release = maybe_get(base + "/releases/tags/" + urllib.parse.quote(tag, safe=""))
+    if release and not release["draft"]:
+        if not ref or ref["object"]["type"] != "commit":
+            raise RuntimeError("Published release is missing its expected source tag")
+        original = ref["object"]["sha"]
+        if original != commit and platform_tree(base, original, platform) != platform_tree(base, commit, platform):
+            raise RuntimeError("This platform changed after publication; bump its version before releasing")
+        assets = api(base + f"/releases/{release['id']}/assets?per_page=100")
+        names = {asset_name(name) for name in config["patterns"]} | {config["source_archive"], "SHA256SUMS.txt"}
+        if {entry["name"] for entry in assets} != names or any(
+                entry["size"] <= 0 or not re.fullmatch(r"sha256:[0-9a-f]{64}", entry.get("digest") or "") for entry in assets):
+            raise RuntimeError("Existing published release has incomplete assets")
+        print("Preserved verified release with identical platform source:", release["html_url"])
+        return
     output = Path(output_arg).resolve()
     expected = {}
     for pattern in config["patterns"]:
@@ -116,12 +139,8 @@ def main():
     checksums = output / "SHA256SUMS.txt"
     checksums.write_text("".join(f"{digest(path)}  {name}\n" for name, path in sorted(expected.items())))
     expected[checksums.name] = checksums
-    base = f"/repos/{REPOSITORY}"
-    tag = config["tag"]
-    ref = maybe_get(base + "/git/ref/tags/" + urllib.parse.quote(tag, safe=""))
     if ref and (ref["object"]["type"] != "commit" or ref["object"]["sha"] != commit):
         raise RuntimeError("The version tag already points to different source; it was preserved")
-    release = maybe_get(base + "/releases/tags/" + urllib.parse.quote(tag, safe=""))
     if release is None:
         notes = (
             "Developed by **Eric Richards, KI5BZO**.\n\n"
@@ -147,10 +166,6 @@ def main():
             "tag_name": tag, "target_commitish": commit, "name": config["title"],
             "body": notes, "draft": True, "prerelease": False,
         })
-    if not release["draft"]:
-        verify_assets(api(base + f"/releases/{release['id']}/assets?per_page=100"), expected)
-        print("Verified existing published release:", release["html_url"])
-        return
     if release["target_commitish"] != commit:
         raise RuntimeError("Existing draft belongs to different source; it was preserved")
     existing = {entry["name"]: entry for entry in api(base + f"/releases/{release['id']}/assets?per_page=100")}
